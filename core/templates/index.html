@@ -1,0 +1,24 @@
+{% load django_vite %}
+<!DOCTYPE html>
+<html lang="auto" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  {% comment %} <link rel="icon" href="/favicon.ico"> {% endcomment %}
+  {% vite_asset 'favicon.svg' %}
+  <!-- Material Symbols Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D&family=Readex+Pro&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>galerIA</title>
+  {% vite_hmr_client %}
+  {% vite_asset 'assets/js/main.js' %}
+</head>
+
+<body>
+  <div id="app"></div>
+  <!-- Imagen de prueba obtenida desde core/views.py -->
+  {% comment %} {% if imagenprueba %}
+  <img src="{{ imagenprueba }}" alt="imagen de prueba">
+  {% endif %} {% endcomment %}
+</body>
+
+</html>
