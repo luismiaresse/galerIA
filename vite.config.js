@@ -28,7 +28,8 @@ export default defineConfig({
       output: {
         chunkFileNames: undefined,
       },
-    }
+    },
+    target: 'esnext',
   },
   plugins: [
     vue({

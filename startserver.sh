@@ -1,3 +1,4 @@
+mkdir -p logs
 
 # Vite server
 npm run dev &> logs/vite.log &

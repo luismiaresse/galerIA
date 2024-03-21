@@ -20,7 +20,7 @@ coverage
 # Editor directories and files
 *static*
 *pycache*
-models/
+models
 .vscode/*
 !.vscode/extensions.json
 .idea
