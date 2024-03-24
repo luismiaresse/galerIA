@@ -17,11 +17,20 @@ from django.contrib import admin
 from django.urls import path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 from core.views import index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Al ser SPA, todas las rutas deben ser manejadas por la misma vista
-    re_path(r'^.*', index),
+    # re_path(r'^.*', index),
+    path('', index),
+    # Pages photos, albums, shared, create
+    path('photos/', index),
+    path('albums/', index),
+    path('shared/', index),
+    path('create/', index),
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

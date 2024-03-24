@@ -1,3 +1,6 @@
+# Certificates
+cert
+
 # Logs
 logs
 *.log
@@ -31,3 +34,5 @@ models
 *.sw?
 
 *.tsbuildinfo
+
+db.sqlite3

@@ -6,6 +6,7 @@ import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Base URL cambia según desarrollo o producción
   base: '/static/',
   root: resolve('./app'),
   server: {
@@ -51,7 +52,7 @@ export default defineConfig({
       '@css': fileURLToPath(new URL('./app/assets/css', import.meta.url)),
       '@img': fileURLToPath(new URL('./app/assets/img', import.meta.url)),
       '@js': fileURLToPath(new URL('./app/assets/js', import.meta.url)),
-    },
-    extensions: ['.js', '.json'],
+      '@ts': fileURLToPath(new URL('./app/assets/ts', import.meta.url)),
+    }
   }
 })

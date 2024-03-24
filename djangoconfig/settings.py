@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+DOMAIN_NAME = 'galeria.software'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dzy&h*fm4admr#6n7bc9xh)$03=xueockt66nmf#y$p#019oku'
+SECRET_KEY = os.environ.get('GALERIA_DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [DOMAIN_NAME, 'localhost']
 
 
 # Application definition
@@ -40,7 +43,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_vite',
-    'core'
+    'core',
+    'mod_wsgi.server',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +82,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': 'logs/debug.log',
         },
@@ -86,7 +90,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
     },

@@ -1,15 +1,19 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpRequest
 from django.shortcuts import render
 from django.template import loader
 import json
 
 # Create your views here.
-def index(request):
+def index(request: HttpRequest):
     template = loader.get_template('index.html')
-    context = {
-        "imagenprueba": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
-    }
-    return HttpResponse(template.render(context, request))
+    # context = {
+    #     "imagenprueba": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+    # }
+    response = HttpResponse(template.render(None, request))
+    # Activate Cross Origin Isolation
+    response['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    return response
 
 
 # def imprimir_texto(request):
