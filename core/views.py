@@ -13,6 +13,8 @@ def index(request: HttpRequest):
     # Activate Cross Origin Isolation
     response['Cross-Origin-Opener-Policy'] = 'same-origin'
     response['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    # Use HSTS policy
+    response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     return response
 
 
