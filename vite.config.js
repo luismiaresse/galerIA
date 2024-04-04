@@ -3,6 +3,8 @@ import { resolve, dirname } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
+import tailwindcss from '@vituum/vite-plugin-tailwindcss'
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -33,6 +35,7 @@ export default defineConfig({
     target: 'esnext',
   },
   plugins: [
+    tailwindcss(),
     vue({
       template: {
         compilerOptions: {
@@ -44,7 +47,7 @@ export default defineConfig({
     VueI18nPlugin({
         include: resolve(dirname(fileURLToPath(import.meta.url)), './app/locales/**'),
         strictMessage: false,
-    })
+    }),
   ],
   resolve: {
     alias: {
