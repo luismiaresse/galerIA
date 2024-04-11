@@ -1,7 +1,9 @@
 mkdir -p logs
 
 # Vite server
-npm run dev &> logs/vite.log &
+cd app
+npm run "dev production" &> ../logs/vite.log &
+cd ..
 
 # Change DEBUG mode to True
 sed -i 's/DEBUG = False/DEBUG = True/g' djangoconfig/settings.py

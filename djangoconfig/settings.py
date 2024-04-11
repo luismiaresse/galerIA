@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('GALERIA_DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [DOMAIN_NAME, 'localhost']
+ALLOWED_HOSTS = [DOMAIN_NAME, 'localhost', "192.168.0.14"]
 
 
 # Application definition
