@@ -35,4 +35,6 @@ models
 
 *.tsbuildinfo
 
-db.sqlite3
+# DB
+*.sqlite
+*.pg*
