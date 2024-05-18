@@ -1,3 +1,6 @@
+# Get DB connection details
+export PGSERVICEFILE="./.pg_service.conf"
+
 mkdir -p logs
 
 # Vite server
@@ -9,5 +12,5 @@ cd ..
 sed -i 's/DEBUG = False/DEBUG = True/g' djangoconfig/settings.py
 
 # Django server
-python manage.py runserver 0.0.0.0:8000 &> logs/django.log &
+python manage.py runserver 0.0.0.0:8000 &
 

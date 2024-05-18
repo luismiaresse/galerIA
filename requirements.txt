@@ -2,6 +2,6 @@ django>=5.0.2
 djangorestframework>=3.14.0
 django-vite>=3.0.3
 django-cors-headers>=4.3.1
-whitenoise>=6.6.0
+django-rest-knox>=4.2.0
 mod-wsgi>=5.0.0
-
+psycopg>=3.1.12
