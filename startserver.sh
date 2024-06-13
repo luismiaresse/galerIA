@@ -1,5 +1,3 @@
-# Get DB connection details
-export PGSERVICEFILE="./.pg_service.conf"
 
 mkdir -p logs
 
