@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
-from core.models import Media, Album
+from core.models import Media, Album, UserAlbums, UserData
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -8,11 +7,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
         extra_kwargs = {
-            'passwordhash': {'write_only': True, 'min_length': 8}
+            'password': {'write_only': True, 'min_length': 8}
         }
         
     def create(self, validated_data):
-        print("Hola")
         user = User.objects.create_user(**validated_data)
         return user
         
@@ -27,27 +25,17 @@ class AlbumSerializer(serializers.HyperlinkedModelSerializer):
         model = Album
         fields = '__all__'
 
-
-class AuthSerializer(serializers.Serializer):
-    '''serializer for the user authentication object'''
-    username = serializers.CharField()
-    password = serializers.CharField(
-        style={'input_type': 'password'},
-        trim_whitespace=False
-    )    
-    def validate(self, attrs):
-        username = attrs.get('username')
-        password = attrs.get('password')
+class UserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserData
+        fields = '__all__'
         
-        user = authenticate(
-            request=self.context.get('request'),
-            username=username,
-            password=password
-        )
+class UserAlbumsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAlbums
+        fields = '__all__'
         
-        if not user:
-            msg = ('Unable to authenticate with provided credentials')
-            raise serializers.ValidationError(msg, code='authentication')
-
-        attrs['user'] = user
-        return 
+class UserMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Media
+        fields = '__all__'
