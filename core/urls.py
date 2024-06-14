@@ -26,21 +26,21 @@ from knox.views import LogoutView as LogoutAPI
 
 
 urlpatterns = [
-    path('admin', admin.site.urls),
+    path('admin/', admin.site.urls),
     # Al ser SPA, todas las rutas deben ser manejadas por la misma vista
     # re_path(r'^.*', index),
     path('', index),
     # Pages photos, albums, shared, create
-    path('photos', index),
+    path('photos/', index),
     re_path(r'^photos\/[0-9]+$', index),
-    path('albums', index),
+    path('albums/', index),
     # Regex para albums/album_id o albums/album_id/media_id
-    re_path(r'^albums\/[0-9]+$', index),
+    re_path(r'^albums\/[0-9]+\/$', index),
     re_path(r'^albums\/[0-9]+\/[0-9]+$', index),
-    path('shared', index),
-    path('create', index),
-    path('auth', index),
-    path('settings', index),
+    path('shared/', index),
+    path('create/', index),
+    path('auth/', index),
+    path('settings/', index),
     # APIs
     path(LOGIN_API, LoginAPI.as_view(), name='login'),
     path(REGISTER_API, RegisterAPI.as_view(), name='register'),
