@@ -32,12 +32,14 @@ class Album(models.Model):
 class Media(models.Model):
     id = models.AutoField(primary_key=True)
     filename = models.CharField(max_length=500)
-    file = models.BinaryField(null=True)   # Allow null for default profile photos
-    creationdate = models.DateTimeField(auto_now_add=True)
+    file = models.CharField(null=True)   # Allow null for default profile photos
+    modificationdate = models.DateTimeField()
     kind = models.CharField(max_length=20)    # Can be 'image', 'video' or 'profile' (for profile photos)
     # Optional fields
     location = models.CharField(max_length=50, null=True)
     label = models.CharField(max_length=50, null=True)
+    # Objects detected in the media using YOLO with format object1;object2;object3...
+    detectedobjects = models.CharField(null=True, max_length=100)
     
     album = models.ManyToManyField(Album, through='MediaAlbum')     # Uses class defined below
     
@@ -45,25 +47,18 @@ class Media(models.Model):
         db_table = f'"{SCHEMA}"."media"'
 
     def __str__(self):
+        string = {
+            "id": self.id,
+            "filename": self.filename,
+            "modificationdate": self.modificationdate.isoformat(),
+            "kind": self.kind,
+            "location": self.location,
+            "label": self.label,
+            "detectedobjects": self.detectedobjects
+        }
         if (self.file is not None):
-            return json.dumps({
-                "id": self.id,
-                "filename": self.filename,
-                "file": utils.decode_image(self.file),
-                "creationdate": self.creationdate.isoformat(),
-                "kind": self.kind,
-                "location": self.location,
-                "label": self.label
-            })
-        else:
-            return json.dumps({
-                "id": self.id,
-                "filename": self.filename,
-                "creationdate": self.creationdate.isoformat(),
-                "kind": self.kind,
-                "location": self.location,
-                "label": self.label        
-            })
+            string["file"] = utils.decode_image(self.file)
+        return json.dumps(string)
     
 # Intermediate table for Media and Album
 class MediaAlbum(models.Model):
@@ -90,7 +85,7 @@ class UserData(models.Model):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50)
     email = models.CharField(max_length=50)
-    photo = models.BinaryField()
+    photo = models.CharField()
     
     class Meta:
         db_table = f'"{SCHEMA}"."user_data_view"'
@@ -101,7 +96,7 @@ class UserData(models.Model):
         return json.dumps({
             "username": self.username,
             "email": self.email,
-            "photo": self.photo
+            "photo": utils.decode_image(self.photo)
         })
 
     
@@ -137,7 +132,7 @@ class UserMedia(models.Model):
     album_name = models.CharField(max_length=50)
     media_id = models.IntegerField()
     kind = models.CharField(max_length=20)
-    file = models.BinaryField()
+    file = models.CharField()
     is_cover = models.BooleanField()
     
     class Meta:

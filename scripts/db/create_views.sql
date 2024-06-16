@@ -28,4 +28,4 @@ from rest.media m
 	join rest.album_user au on a.id = au.album_id
 	join public.auth_user u on u.id = au.user_id
 where kind != 'profile'
-order by m.creationdate desc;
+order by m.modificationdate desc;
