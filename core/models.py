@@ -10,7 +10,9 @@ SCHEMA = "rest"
 class Album(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
-    creationdate = models.DateTimeField(auto_now=True)
+    # Auto now add only sets the value of the field to now when the object is first created
+    creationdate = models.DateTimeField(auto_now_add=True)
+    # Auto now sets the value of the field to now every time the object is saved
     lastupdate = models.DateTimeField(auto_now=True)
     
     user = models.ManyToManyField(User)       # Creates intermediate table
@@ -31,7 +33,7 @@ class Media(models.Model):
     id = models.AutoField(primary_key=True)
     filename = models.CharField(max_length=500)
     file = models.BinaryField(null=True)   # Allow null for default profile photos
-    creationdate = models.DateTimeField(auto_now=True)
+    creationdate = models.DateTimeField(auto_now_add=True)
     kind = models.CharField(max_length=20)    # Can be 'image', 'video' or 'profile' (for profile photos)
     # Optional fields
     location = models.CharField(max_length=50, null=True)
