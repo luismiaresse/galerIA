@@ -1,4 +1,6 @@
+import datetime
 import json
+import dateutil
 from django.http import HttpResponse, HttpRequest
 from django.template import loader
 
@@ -80,17 +82,10 @@ class UserAPI(KnoxAPIView):
         # Fetch requesting user data
         try:
             user = UserData.objects.get(id=request.user.id)
-            serializer = UserDataSerializer(user)
-            # If user has no profile photo, return data without it
-            if serializer.data["photo"] == None:
-                data_json = dict(serializer.data)
-                del data_json["photo"]
-                data_str = str(data_json).replace("\'", "\"")
-                return HttpResponse(data_str, content_type='application/json')
             
-            data_json = json.loads(str(serializer.data).replace("\'", "\""))
-            data_str = json.dumps(data_json)
-            return HttpResponse(data_str, content_type='application/json')
+            
+            return HttpResponse(str(user), content_type='application/json')
+        
         except UserData.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
     
@@ -212,31 +207,40 @@ class MediaAPI(KnoxAPIView):
         location = request.POST.get('location')
         label = request.POST.get('label')
         albumid = request.POST.get('albumid')
+        modification = request.POST.get('modificationdate')
+        if modification:
+            modificationdate = dateutil.parser.isoparse(modification)
+        else:
+            modificationdate = datetime.datetime.now()
+        
         if albumid:
             album = Album.objects.get(id=albumid, user=user)
         else:
             album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
 
-        # Profile picture upload
+        # Profile photo upload
         if kind == MediaKinds.PROFILE.value:
-            # Put user profile picture
             # Encode binary data to base64
             file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.PROFILE.value)
+            # Get current profile photo
+            current = album.media_set.filter(kind=MediaKinds.PROFILE.value)
+            if current:
+                current.delete()
+            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.PROFILE.value, modificationdate=modificationdate)
             # Add profile picture to user profile album
             media.album.add(album)
         # Image upload
         elif kind == MediaKinds.IMAGE.value:
             # Encode binary data to base64
             file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.IMAGE.value, label=label, location=location)
+            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate)
             # Add image to user default album
             media.album.add(album)
         # Video upload
         elif kind == MediaKinds.VIDEO.value:
             # Encode binary data to base64
             file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.VIDEO.value, label=label, location=location)
+            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate)
             # Add video to user default album
             media.album.add(album)
             
@@ -252,22 +256,25 @@ class MediaAPI(KnoxAPIView):
         if (not request.user) or (not request.POST.get('id')):
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         
-        user = User.objects.get(id=request.user.id)
-        albumid = request.POST.get('albumid')
-        if albumid:
-            album = Album.objects.get(id=albumid, user=user)
-        else:
-            album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
-        mediaid = request.POST.get('id')
-        media = Media.objects.get(id=mediaid, album=album)
-        
-        # Update album last update date
-        album.save()
-        
-        if media:
-            media.delete()
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+        try:
+            user = User.objects.get(id=request.user.id)
+            albumid = request.POST.get('albumid')
+            if albumid:
+                album = Album.objects.get(id=albumid, user=user)
+            else:
+                album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
+            mediaid = request.POST.get('id')
+            media = Media.objects.get(id=mediaid, album=album)
+            
+            # Update album last update date
+            album.save()
+            
+            if media:
+                media.delete()
+                return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+            return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+        except Media.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
     
     
 class UserMediaAPI(KnoxAPIView):
@@ -311,7 +318,7 @@ class UserMediaAPI(KnoxAPIView):
         
         # Sort media by creation date (newest first)
         if media: 
-            media.sort(key=lambda x: x.creationdate, reverse=True)
+            media.sort(key=lambda x: x.modificationdate, reverse=True)
         
         # Create JSON response
         media_json = "["
