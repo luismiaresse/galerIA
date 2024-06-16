@@ -240,6 +240,9 @@ class MediaAPI(KnoxAPIView):
             # Add video to user default album
             media.album.add(album)
             
+        # Update album last update date
+        album.save()
+            
         # Return new media info without binary data
         media.file = None
         return HttpResponse(str(media), content_type='application/json', status=status.HTTP_200_OK)
@@ -257,6 +260,10 @@ class MediaAPI(KnoxAPIView):
             album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
         mediaid = request.POST.get('id')
         media = Media.objects.get(id=mediaid, album=album)
+        
+        # Update album last update date
+        album.save()
+        
         if media:
             media.delete()
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -270,15 +277,15 @@ class UserMediaAPI(KnoxAPIView):
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         
         user = User.objects.get(id=request.user.id)
-        mediaId = request.GET.get('mediaid')
-        skipFiles = request.GET.get('skipFiles')
+        mediaid = request.GET.get('mediaid')
+        skipfiles = request.GET.get('skipfiles')
                 
         # If only one media is requested
-        if mediaId:
-            usermedia = UserMedia.objects.get(id=user.id, media_id=mediaId)
+        if mediaid:
+            usermedia = UserMedia.objects.get(id=user.id, media_id=mediaid)
             # Get media
-            media = Media.objects.get(id=mediaId, album=usermedia.album_id)
-            if skipFiles:
+            media = Media.objects.get(id=mediaid, album=usermedia.album_id)
+            if skipfiles:
                 media.file = None
             media_json = json.loads(str(media))
             media_json["albumid"] = usermedia.album_id
@@ -302,11 +309,15 @@ class UserMediaAPI(KnoxAPIView):
         #     vid.file = vid.file.decode('utf-8')
         media.extend(videos)
         
+        # Sort media by creation date (newest first)
+        if media: 
+            media.sort(key=lambda x: x.creationdate, reverse=True)
+        
         # Create JSON response
         media_json = "["
         if len(media) != 0:
             for m in media:
-                if skipFiles:
+                if skipfiles:
                     m.file = None
                 media_json += str(m) + ","
                 # media_json["albumid"] = album.id
