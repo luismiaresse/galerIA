@@ -212,6 +212,7 @@ class MediaAPI(KnoxAPIView):
             modificationdate = dateutil.parser.isoparse(modification)
         else:
             modificationdate = datetime.datetime.now()
+        detectedobjects = request.POST.get('detectedobjects')
         
         if albumid:
             album = Album.objects.get(id=albumid, user=user)
@@ -233,14 +234,14 @@ class MediaAPI(KnoxAPIView):
         elif kind == MediaKinds.IMAGE.value:
             # Encode binary data to base64
             file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate)
+            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
             # Add image to user default album
             media.album.add(album)
         # Video upload
         elif kind == MediaKinds.VIDEO.value:
             # Encode binary data to base64
             file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate)
+            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
             # Add video to user default album
             media.album.add(album)
             
