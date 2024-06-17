@@ -109,6 +109,7 @@ class UserAlbums(models.Model):
     album_elements = models.IntegerField()
     creationdate = models.DateTimeField()
     lastupdate = models.DateTimeField()
+    cover = models.CharField()
     
     class Meta:
         db_table = f'"{SCHEMA}"."user_albums_view"'
@@ -116,13 +117,16 @@ class UserAlbums(models.Model):
         managed = False
         
     def __str__(self):
-        return json.dumps({
-            "albumid": self.album_id,
-            "albumname": self.album_name,
-            "albumelements": self.album_elements,
+        string = {
+            "id": self.album_id,
+            "name": self.album_name,
+            "elements": self.album_elements,
             "creationdate": self.creationdate.isoformat(),
             "lastupdate": self.lastupdate.isoformat()
-        })
+        }
+        if (self.cover is not None):
+            string["cover"] = utils.decode_image(self.cover)
+        return json.dumps(string)
 
     
 class UserMedia(models.Model):
@@ -131,9 +135,14 @@ class UserMedia(models.Model):
     album_id = models.IntegerField()
     album_name = models.CharField(max_length=50)
     media_id = models.IntegerField()
-    kind = models.CharField(max_length=20)
-    file = models.CharField()
     is_cover = models.BooleanField()
+    filename = models.CharField(max_length=500)
+    kind = models.CharField(max_length=20)
+    modificationdate = models.DateTimeField()
+    location = models.CharField(max_length=50, null=True)
+    label = models.CharField(max_length=50, null=True)
+    detectedobjects = models.CharField(null=True, max_length=100)
+    file = models.CharField()
     
     class Meta:
         db_table = f'"{SCHEMA}"."user_media_view"'
@@ -141,12 +150,19 @@ class UserMedia(models.Model):
         managed = False
         
     def __str__(self):
-        return json.dumps({
+        string = {
+            "id": self.media_id,
             "albumid": self.album_id,
-            "album_name": self.album_name,
-            "mediaid": self.media_id,
+            "albumname": self.album_name,
+            "iscover": self.is_cover,
+            "filename": self.filename,
             "kind": self.kind,
-            "file": self.file,
-            "iscover": self.is_cover
-        })
+            "modificationdate": self.modificationdate.isoformat(),
+            "location": self.location,
+            "label": self.label,
+            "detectedobjects": self.detectedobjects
+        }
+        if (self.file is not None):
+            string["file"] = utils.decode_image(self.file)
+        return json.dumps(string)
     

@@ -291,28 +291,24 @@ class UserMediaAPI(KnoxAPIView):
         # If only one media is requested
         if mediaid:
             usermedia = UserMedia.objects.get(id=user.id, media_id=mediaid)
-            # Get media
-            media = Media.objects.get(id=mediaid, album=usermedia.album_id)
             if skipfiles:
-                media.file = None
-            media_json = json.loads(str(media))
-            media_json["albumid"] = usermedia.album_id
-            return HttpResponse(json.dumps(media_json), content_type='application/json')
+                usermedia.file = None
+            return HttpResponse(str(usermedia), content_type='application/json')
         
         # If album ID is provided, get media from that album
         albumid = request.GET.get('albumid')
         if albumid:
-            album = Album.objects.get(id=albumid, user=user)
+            usermedia = UserMedia.objects.filter(id=user.id, album_id=albumid)
         else:
-            album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
+            usermedia = UserMedia.objects.filter(id=user.id, album_name=DEFAULT_ALBUM)
             
         # Get media from album
         media = []
-        images = album.media_set.filter(kind=MediaKinds.IMAGE.value)
+        images = usermedia.filter(kind=MediaKinds.IMAGE.value)
         # for img in images:
         #     img.file = img.file.decode('utf-8')
         media.extend(images)
-        videos = album.media_set.filter(kind=MediaKinds.VIDEO.value)
+        videos = usermedia.filter(kind=MediaKinds.VIDEO.value)
         # for vid in videos:
         #     vid.file = vid.file.decode('utf-8')
         media.extend(videos)
