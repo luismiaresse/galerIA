@@ -1,6 +1,9 @@
 import base64
+from django.core.files import File
 
 def encode_image(file):
+    if isinstance(file, File):
+        return base64.b64encode(file.read()).decode('utf-8')
     return base64.b64encode(file).decode('utf-8')
 
 def decode_image(img_from_db):

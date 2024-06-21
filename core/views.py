@@ -3,6 +3,7 @@ import json
 import dateutil
 from django.http import HttpResponse, HttpRequest
 from django.template import loader
+from django.core.files import File
 
 # Template views
 
@@ -17,11 +18,11 @@ def index(request: HttpRequest):
 
 from core import utils
 from core.common import DEFAULT_ALBUM, MediaKinds
-from core.models import Album, Media, UserAlbums, UserData, UserMedia
-from core.serializers import UserDataSerializer, UserSerializer
+from core.models import Album, Media, MediaAlbum, UserAlbums, UserData, UserMedia
+from core.serializers import UserSerializer
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import status, generics, permissions
-from knox.views import LoginView as KnoxLoginView, LogoutView as KnoxLogoutView, APIView as KnoxAPIView
+from knox.views import LoginView as KnoxLoginView, APIView as KnoxAPIView
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 
@@ -131,6 +132,32 @@ class AlbumAPI(KnoxAPIView):
         else:
             album = Album.objects.get(id=albumid, user=user)
         return HttpResponse(str(album), content_type='application/json')
+    
+    def post(self, request):
+        # Change album cover
+        if (not request.user) or (not request.POST.get('id')):
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        
+        user = User.objects.get(id=request.user.id)
+        albumid = request.POST.get('id')
+        album = Album.objects.get(id=albumid, user=user)
+        mediaid = request.POST.get('mediaid')
+        media = Media.objects.get(id=mediaid)
+        
+        # Update album cover
+        cover = album.mediaalbum_set.get(media=media)
+        cover.is_cover = True
+        cover.save()
+        
+        # Remove cover from other media
+        other = album.mediaalbum_set.filter(is_cover=True).exclude(media=media)
+        for o in other:
+            o.is_cover = False
+            o.save()
+        
+        # Update album last update date
+        album.save()
+        return HttpResponse(status=status.HTTP_200_OK)
             
     # Create user album
     def put(self, request):
@@ -195,7 +222,7 @@ class MediaAPI(KnoxAPIView):
         except Media.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         
-    # Add media to user album
+    # Add or update media to user album
     def put(self, request):
         if (not request.user) or (not request.POST.get('kind')) or (not request.data['file']):
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
@@ -203,7 +230,11 @@ class MediaAPI(KnoxAPIView):
         user = User.objects.get(id=request.user.id)
         kind = request.POST.get('kind')
         file = request.data['file']
-        filename = file.name
+        if not isinstance(file, str):
+            file = File(file)
+            filename = file.name
+            file = utils.encode_image(file)
+            
         location = request.POST.get('location')
         label = request.POST.get('label')
         albumid = request.POST.get('albumid')
@@ -214,34 +245,50 @@ class MediaAPI(KnoxAPIView):
             modificationdate = datetime.datetime.now()
         detectedobjects = request.POST.get('detectedobjects')
         
+        mediaid = request.POST.get('id')
+        if mediaid:
+            # Update media
+            media = Media.objects.get(id=mediaid)
+            if location:
+                media.location = location
+            if label:
+                media.label = label
+            if detectedobjects:
+                media.detectedobjects = detectedobjects
+            media.file = file
+            media.modificationdate = datetime.datetime.now()
+            media.save()
+            media.file = None
+            return HttpResponse(str(media), content_type='application/json', status=status.HTTP_200_OK)
+            
         if albumid:
             album = Album.objects.get(id=albumid, user=user)
         else:
             album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
+            
 
         # Profile photo upload
         if kind == MediaKinds.PROFILE.value:
-            # Encode binary data to base64
-            file64 = utils.encode_image(file.file.read())
             # Get current profile photo
             current = album.media_set.filter(kind=MediaKinds.PROFILE.value)
             if current:
                 current.delete()
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.PROFILE.value, modificationdate=modificationdate)
+            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.PROFILE.value, modificationdate=modificationdate)
             # Add profile picture to user profile album
             media.album.add(album)
         # Image upload
         elif kind == MediaKinds.IMAGE.value:
-            # Encode binary data to base64
-            file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+            # Check if there are any images in the album
+            other = album.media_set.filter(kind=MediaKinds.IMAGE.value)
+            # If no images, set this image as album cover
+            if not other: is_cover = True
+            else: is_cover = False
             # Add image to user default album
-            media.album.add(album)
+            mediaalbum = MediaAlbum.objects.create(media=media, album=album, is_cover=is_cover)
         # Video upload
         elif kind == MediaKinds.VIDEO.value:
-            # Encode binary data to base64
-            file64 = utils.encode_image(file.file.read())
-            media = Media.objects.create(filename=filename, file=file64, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
             # Add video to user default album
             media.album.add(album)
             
