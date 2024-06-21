@@ -34,11 +34,11 @@ ALLOWED_HOSTS = [DOMAIN_NAME, 'localhost', "192.168.0.14"]
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
@@ -56,8 +56,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -72,7 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                # 'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -170,7 +170,12 @@ CORS_ALLOWED_ORIGINS = [
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 # Disable compression for now (very slow due to big models)
-# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STORAGES = {
+#     "staticfiles": {
+#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#     },
+# }
+
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
