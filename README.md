@@ -54,3 +54,7 @@ dbname=galeria
 user=galeria
 password=password
 ```
+
+## License
+
+Licensed under AGPLv3. This should be in any fork or redistribution, and should credit contributors as well. See [LICENSE](LICENSE) for more information.
