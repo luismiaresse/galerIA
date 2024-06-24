@@ -36,6 +36,7 @@ class Media(models.Model):
     modificationdate = models.DateTimeField()
     kind = models.CharField(max_length=20)    # Can be 'image', 'video' or 'profile' (for profile photos)
     # Optional fields
+    coordinates = models.CharField(max_length=50, null=True)
     location = models.CharField(max_length=50, null=True)
     label = models.CharField(max_length=50, null=True)
     # Objects detected in the media using YOLO with format object1;object2;object3...
@@ -139,6 +140,7 @@ class UserMedia(models.Model):
     filename = models.CharField(max_length=500)
     kind = models.CharField(max_length=20)
     modificationdate = models.DateTimeField()
+    coordinates = models.CharField(max_length=50, null=True)
     location = models.CharField(max_length=50, null=True)
     label = models.CharField(max_length=50, null=True)
     detectedobjects = models.CharField(null=True, max_length=100)
@@ -158,6 +160,7 @@ class UserMedia(models.Model):
             "filename": self.filename,
             "kind": self.kind,
             "modificationdate": self.modificationdate.isoformat(),
+            "coordinates": self.coordinates,
             "location": self.location,
             "label": self.label,
             "detectedobjects": self.detectedobjects

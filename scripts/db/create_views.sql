@@ -24,7 +24,9 @@ from rest.album a
 
 
 create view rest.user_media_view as
-select u.id, u.username, a.id as album_id, a.name as album_name, m.id as media_id, ma.is_cover, m.filename, m.kind, m.modificationdate, m.location, m.label, m.detectedobjects, m.file
+select u.id, u.username, a.id as album_id, a.name as album_name, 
+m.id as media_id, ma.is_cover, m.filename, m.kind, m.modificationdate, 
+m.coordinates, m.location, m.label, m.detectedobjects, m.file
 from rest.media m 
 	left join rest.media_album ma on m.id = ma.media_id 
 	left join rest.album a on a.id = ma.album_id

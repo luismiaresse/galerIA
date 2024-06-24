@@ -49,7 +49,8 @@ class RegisterAPI(generics.CreateAPIView):
     authentication_classes = []
     serializer_class = UserSerializer
     
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
+        print(kwargs)
         created = self.create(request, *args, **kwargs)
         if (created):
             # Create default album and profile photo for new user
@@ -65,7 +66,7 @@ class RegisterAPI(generics.CreateAPIView):
         
     def create_profile_photo(self, request):
         user = User.objects.get(username=request.data['username'])
-        profile = Media.objects.create(filename="profile.png", file=None, kind=MediaKinds.PROFILE.value)
+        profile = Media.objects.create(filename="profile.png", file=None, kind=MediaKinds.PROFILE.value, modificationdate=datetime.datetime.now())
         album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
         profile.album.add(album)
     
@@ -89,6 +90,20 @@ class UserAPI(KnoxAPIView):
         
         except UserData.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        
+    # Change password
+    def post(self, request):
+        if not request.user or (not request.POST.get('passwordold')):
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        
+        user = User.objects.get(id=request.user.id)
+        # Check if old password is correct
+        if not user.check_password(request.POST.get('passwordold')):
+            return HttpResponse(status=status.HTTP_406_NOT_ACCEPTABLE)
+        
+        user.set_password(request.POST.get('passwordnew'))
+        user.save()
+        return HttpResponse(status=status.HTTP_200_OK)
     
     def put(self, request):
         if not request.user:
@@ -110,12 +125,6 @@ class UserAPI(KnoxAPIView):
     #     user.delete()
     #     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
     
-    def post(self, request):
-        serializer = UserSerializer(data=request.POST)
-        if serializer.is_valid():
-            serializer.save()
-            return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
-        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -213,7 +222,6 @@ class MediaAPI(KnoxAPIView):
             if kind == MediaKinds.IMAGE.value:
                 imageid = request.GET.get('id')
                 media = Media.objects.get(id=imageid, album=album)
-            
             # Fetch video
             elif kind == MediaKinds.VIDEO.value:
                 videoid = request.GET.get('id')
@@ -235,7 +243,13 @@ class MediaAPI(KnoxAPIView):
             filename = file.name
             file = utils.encode_image(file)
             
-        location = request.POST.get('location')
+        coordinates = request.POST.get('coordinates')
+        if coordinates:
+            # Fetch location from coordinates
+            print(coordinates)
+            lat, lon = coordinates.split(',')
+            location = utils.get_location_from_coordinates(lat, lon)
+        else: location = None
         label = request.POST.get('label')
         albumid = request.POST.get('albumid')
         modification = request.POST.get('modificationdate')
@@ -278,7 +292,7 @@ class MediaAPI(KnoxAPIView):
             media.album.add(album)
         # Image upload
         elif kind == MediaKinds.IMAGE.value:
-            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.IMAGE.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.IMAGE.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
             # Check if there are any images in the album
             other = album.media_set.filter(kind=MediaKinds.IMAGE.value)
             # If no images, set this image as album cover
@@ -288,7 +302,7 @@ class MediaAPI(KnoxAPIView):
             mediaalbum = MediaAlbum.objects.create(media=media, album=album, is_cover=is_cover)
         # Video upload
         elif kind == MediaKinds.VIDEO.value:
-            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.VIDEO.value, label=label, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+            media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.VIDEO.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
             # Add video to user default album
             media.album.add(album)
             
