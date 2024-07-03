@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_vite',
     'core',
     'mod_wsgi.server',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,10 @@ DATABASES = {
         'USER': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
-        'PASSWORD': 'postgres'
+        'PASSWORD': 'postgres',
+        'TEST': {
+            'NAME': 'galeria-test',
+        }
     }
 }
 
@@ -181,7 +185,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DJANGO_VITE_DEV_MODE = DEBUG
 VITE_APP_DIR = BASE_DIR / "app"
-MEDIA_ROOT = VITE_APP_DIR / "assets"
+MEDIA_ROOT = VITE_APP_DIR / "src" / "assets"
 
 STATICFILES_DIRS = [
   VITE_APP_DIR / "dist"
@@ -200,6 +204,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'galerIA API',
+    'DESCRIPTION': 'API for the galerIA project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 from datetime import timedelta

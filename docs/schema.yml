@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: galerIA API
+  version: 1.0.0
+  description: API for the galerIA project
+paths:
+  /api/album:
+    get:
+      operationId: album_retrieve
+      description: Fetches album metadata for the requesting user.
+      summary: Get user album metadata
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: integer
+        description: Album ID
+      tags:
+      - album
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Album metadata retrieved successfully.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '404':
+          description: Album metadata not found.
+    post:
+      operationId: album_create
+      description: Changes album name or accepts shared album from sharing code.
+      summary: Changes album cover or accepts shared album
+      tags:
+      - album
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Album ID
+                mediaid:
+                  type: integer
+                  description: Media ID for new album cover
+                code:
+                  type: string
+                  description: Sharing code
+              required:
+              - id
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Album cover changed or shared album accepted successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '403':
+          description: Forbidden if the user does not have full access to the album.
+        '404':
+          description: Album not found.
+        '406':
+          description: Not acceptable if the album is already shared.
+        '409':
+          description: Conflict if more than one shared album is found.
+    put:
+      operationId: album_update
+      description: Creates a new album, updates an existing album's name or shares
+        an album with other users.
+      summary: Creates album, updates existing album's name or shares album
+      tags:
+      - album
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Album ID. Required for updating album metadata.
+                name:
+                  type: string
+                  description: Album name. Required for creating a new album or updating
+                    an existing album's name.
+                share:
+                  type: boolean
+                  description: Share album
+                permissions:
+                  type: string
+                  description: Sharing permissions ('read-only', 'read-write' or 'full-access').
+                    Required for sharing an album.
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Album updated or shared successfully.
+        '201':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Album created successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '403':
+          description: Forbidden if the default album is being modified, an album
+            with same name is being created, or user does not have full access.
+        '404':
+          description: Album not found.
+        '406':
+          description: Not acceptable if the album name is too long or share is not
+            requested.
+        '409':
+          description: Conflict if the album is already shared with the same permissions.
+    delete:
+      operationId: album_destroy
+      description: Deletes album and all associated media.
+      summary: Delete album
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: integer
+        description: Album ID
+        required: true
+      tags:
+      - album
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: Album deleted successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '403':
+          description: Forbidden if the default album is being deleted.
+        '404':
+          description: Album not found.
+  /api/albums:
+    get:
+      operationId: albums_retrieve
+      description: Fetches all albums for the requesting user.
+      summary: Get user albums
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: integer
+        description: Album ID
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Album name
+      - in: query
+        name: shared
+        schema:
+          type: boolean
+        description: Fetch shared albums from other users
+      - in: query
+        name: sharedowned
+        schema:
+          type: boolean
+        description: Fetch shared albums owned by the user
+      - in: query
+        name: skipcover
+        schema:
+          type: boolean
+        description: Skip response with cover image if it is not used
+      tags:
+      - albums
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Albums retrieved successfully.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '404':
+          description: Albums not found.
+  /api/login:
+    post:
+      operationId: login_create
+      description: Logs in the user with the provided username (or email) and password.
+      summary: Login user
+      tags:
+      - login
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: User's account username
+                email:
+                  type: string
+                  description: User's account email
+                password:
+                  type: string
+                  description: User's account password
+              required:
+              - username
+              - password
+      security:
+      - {}
+      responses:
+        '200':
+          description: User logged in successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the login fails.
+  /api/logout:
+    post:
+      operationId: logout_create
+      tags:
+      - logout
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/media:
+    put:
+      operationId: media_update
+      description: Adds new media to the requesting user's album or updates existing
+        media.
+      summary: Add or update media
+      tags:
+      - media
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: string
+                  description: Media kind ('profile', 'image' or 'video')
+                file:
+                  type: string
+                  format: binary
+                  description: Media file. Can be a file or a string in base64 format
+                coordinates:
+                  type: string
+                  description: Media coordinates
+                label:
+                  type: string
+                  description: Media label
+                modificationdate:
+                  type: string
+                  format: date-time
+                  description: Media modification date
+                detectedobjects:
+                  type: string
+                  description: Detected objects in image
+                albumid:
+                  type: integer
+                  description: Album ID to add media to
+              required:
+              - kind
+              - file
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Media added or updated successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '404':
+          description: Media not found.
+    delete:
+      operationId: media_destroy
+      description: Deletes media from the requesting user's album. If not specified,
+        deletes media from the default album.
+      summary: Delete media
+      parameters:
+      - in: query
+        name: albumid
+        schema:
+          type: integer
+        description: Album ID
+      - in: query
+        name: id
+        schema:
+          type: integer
+        description: Media ID
+        required: true
+      tags:
+      - media
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: Media deleted successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '404':
+          description: Album not found.
+  /api/medias:
+    get:
+      operationId: medias_retrieve
+      description: Fetches media for the requesting user from the specified album.
+      summary: Get user media
+      parameters:
+      - in: query
+        name: albumid
+        schema:
+          type: integer
+        description: Album ID
+      - in: query
+        name: mediaid
+        schema:
+          type: integer
+        description: Media ID
+      - in: query
+        name: skipfiles
+        schema:
+          type: boolean
+        description: Skip response with media files if they are not used
+      tags:
+      - medias
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Media retrieved successfully.
+        '400':
+          description: Bad request if required data is missing.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+  /api/register:
+    post:
+      operationId: register_create
+      description: Registers a new user with the provided username, email and password.
+      summary: Register new user
+      tags:
+      - register
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: User's username
+                email:
+                  type: string
+                  description: User's email
+                password:
+                  type: string
+                  description: User's password
+              required:
+              - username
+              - email
+              - password
+      security:
+      - {}
+      responses:
+        '201':
+          description: User registered successfully.
+        '400':
+          description: Bad request if required data is missing.
+  /api/user:
+    get:
+      operationId: user_retrieve
+      description: Fetches data for the requesting user or performs a health check.
+      summary: Get user data
+      parameters:
+      - in: query
+        name: check
+        schema:
+          type: boolean
+        description: Health check parameter
+      tags:
+      - user
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: User data retrieved successfully.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '404':
+          description: User data not found.
+    post:
+      operationId: user_create
+      description: Changes the password of the requesting user.
+      summary: Change password
+      tags:
+      - user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                passwordold:
+                  type: string
+                  description: User's actual password
+                passwordnew:
+                  type: string
+                  description: New password to set
+              required:
+              - passwordold
+              - passwordnew
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: Password changed successfully.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+        '406':
+          description: Not acceptable if the old password is incorrect.
+    delete:
+      operationId: user_destroy
+      description: Deletes the requesting user and all associated albums and media.
+      summary: Delete user
+      tags:
+      - user
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: User and associated data deleted successfully.
+        '401':
+          description: Unauthorized if the user is not authenticated.
+components:
+  securitySchemes:
+    knoxApiToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Knox"

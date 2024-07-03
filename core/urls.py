@@ -30,7 +30,7 @@ urlpatterns = [
     path('', index),
     # Pages photos, albums, shared, create
     path('photos/', index),
-    re_path(r'^photos\/[0-9]+$', index),
+    re_path(r'^[0-9]+$', index),
     path('albums/', index),
     # Regex para albums/album_id o albums/album_id/media_id
     re_path(r'^albums\/[0-9]+\/$', index),
@@ -47,7 +47,7 @@ urlpatterns = [
     path(ALBUM_API, AlbumAPI.as_view(), name='album'),
     path(USER_ALBUMS_API, UserAlbumsAPI.as_view(), name='albums'),
     path(MEDIA_API, MediaAPI.as_view(), name='media'),
-    path(USER_MEDIA_API, UserMediaAPI.as_view(), name='user_media'),
+    path(USER_MEDIA_API, UserMediaAPI.as_view(), name='medias'),
     # Robots.txt
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
