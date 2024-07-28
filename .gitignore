@@ -38,3 +38,4 @@ models
 # DB
 *.sqlite
 *.pg*
+.env
