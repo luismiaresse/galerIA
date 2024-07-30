@@ -3,7 +3,7 @@ mkdir -p logs
 
 # Vite server
 cd app
-npm run "dev production" &> ../logs/vite.log &
+npm run dev -- --host &> ../logs/vite.log &
 cd ..
 
 # Change DEBUG mode to True
