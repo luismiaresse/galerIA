@@ -1,4 +1,0 @@
-[submodule "app"]
-	path = app
-	url = https://github.com/luismiaresse/galerIA-frontend
-	branch = master
