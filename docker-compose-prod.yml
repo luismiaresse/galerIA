@@ -1,0 +1,31 @@
+services:
+  db:
+    build: ./db
+    environment:
+      - POSTGRES_DB=galeria
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
+    container_name: galeria-db
+
+  app:
+    build: ./app
+    depends_on:
+      db:
+        condition: service_healthy
+    container_name: galeria-app
+
+  server:
+    build: ./server
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    container_name: galeria-server

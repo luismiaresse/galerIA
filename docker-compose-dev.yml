@@ -1,0 +1,15 @@
+services:
+  db-dev:
+    build: ./db
+    environment:
+      - POSTGRES_DB=galeria
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
+    container_name: galeria-db-dev

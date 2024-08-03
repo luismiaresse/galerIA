@@ -1,0 +1,86 @@
+/* Styles for common elements */
+
+.separator {
+  width: 100%;
+  height: 1px;
+  background: white;
+  opacity: 0.3;
+  margin: 0.6rem 0;
+}
+
+.separator-point {
+  width: 4px;
+  height: 4px;
+  display: inline-block;
+  background-color: var(--texto-gris);
+  border-radius: 50%;
+}
+
+/* Separation for icons in chips */
+.icon-left {
+  margin-right: 8px;
+}
+
+.icon-right {
+  margin-left: 8px;
+}
+
+.text-primary {
+  color: var(--texto-blanco);
+}
+
+.text-secondary {
+  color: var(--texto-gris);
+}
+
+.error {
+  color: var(--error);
+}
+
+.success {
+  color: var(--success);
+}
+
+.font-primary {
+  font-family: var(--fuente-principal);
+}
+
+.font-secondary {
+  font-family: var(--fuente-secundaria);
+}
+
+.dialog {
+  background: var(--fondo-oscuro);
+  color: var(--texto-blanco);
+  border-radius: 30px;
+  border: 1px solid var(--texto-gris);
+}
+
+.content-title {
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.dialog-translucent {
+  background: rgba(0, 0, 0, 0.66);
+  border: 1px solid var(--texto-gris);
+  border-radius: 30px;
+  color: var(--texto-blanco);
+}
+
+.color-primary {
+  color: var(--md-sys-color-primary);
+}
+
+.hidden-transition {
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+  pointer-events: none;
+}
+
+.grow-left {
+  direction: rtl;
+  & > * {
+    direction: ltr;
+  }
+}

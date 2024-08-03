@@ -1,0 +1,8 @@
+/* PostCSS custom media (import in used places) */
+
+@custom-media --header-break (max-width: 975px);
+@custom-media --mobile (max-width: 550px);
+@custom-media --mobile-s (max-width: 320px);
+@custom-media --mobile-m (max-width: 375px);
+@custom-media --mobile-l (max-width: 425px);
+

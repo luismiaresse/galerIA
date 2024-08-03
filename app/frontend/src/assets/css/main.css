@@ -1,0 +1,139 @@
+@import "./common.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  h3 {
+    @apply text-lg font-bold;
+  }
+  h4 {
+    @apply text-base font-bold;
+  }
+  h5 {
+    @apply text-sm font-bold;
+  }
+  h6 {
+    @apply text-xs font-bold;
+  }
+}
+
+.material-icons {
+  font-size: 18px;
+}
+
+:root {
+  --fuente-principal: "K2D", sans-serif;
+  --fuente-secundaria: "Readex Pro", sans-serif;
+  --fondo: #1a1a1a;
+  --fondo-oscuro: #0d0d0d;
+  --texto-blanco: #e9e9e9;
+  --texto-gris: #9b9b9b;
+  --rojo: #ff2f2f;
+  --naranja: #fb5936;
+  --rosa: #eb3fa6;
+  --gradiente: linear-gradient(
+    180deg,
+    var(--rojo) 0%,
+    var(--naranja) 50%,
+    var(--rosa) 100%
+  );
+  --error: #ffb4ab;
+  --success: #51f767;
+  --header-height: 6rem;
+  /* Material Design System */
+  --md-ref-typeface-brand: var(--fuente-principal);
+  --md-ref-typeface-plain: var(--fuente-secundaria);
+  --md-icon-font: "Material Symbols Rounded";
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  min-height: 100vh;
+  height: 100vh;
+  min-width: 100vw;
+  width: 100vw;
+  scrollbar-color: var(--fondo) var(--fondo-oscuro);
+  scrollbar-width: thin;
+}
+
+body {
+  min-width: 100vw;
+  width: 100vw;
+  min-height: 100vh;
+  height: 100vh;
+  color: var(--color-text);
+  background: var(--fondo);
+  color: var(--texto-blanco);
+  line-height: 1.6;
+  font-family: var(--fuente-principal), var(--fuente-secundaria), Inter,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: var(--fondo) var(--fondo-oscuro);
+  scrollbar-width: thin;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  border: none;
+  padding: 0;
+  cursor: text;
+}
+
+h1 {
+  font-family: var(--fuente-principal);
+  font-weight: bold;
+  font-size: 32px;
+  color: var(--texto-blanco);
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--fuente-secundaria);
+  color: var(--texto-blanco);
+}
+
+/* Popover animation */
+[popover] {
+  animation: fadeIn 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

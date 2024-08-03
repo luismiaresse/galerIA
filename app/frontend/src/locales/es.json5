@@ -1,0 +1,283 @@
+// Spanish translations
+{
+  // General elements
+  "add": "Añadir",
+  "edit": "Editar",
+  "change": "Cambiar",
+  "delete": "Eliminar",
+  "share": "Compartir",
+  "select": "Seleccionar",
+  "_create": "Crear",
+  "cancel": "Cancelar",
+  "download": "Descargar",
+  "details": "Detalles",
+  "search": "Buscar",
+  "searchPlaceholder": "Busca por fechas (AAAA-MM-DD), objetos o ubicaciones",
+  "save": "Guardar",
+  "saveChanges": "Guardar cambios",
+  "saveContinue": "Guardar y continuar",
+  "apply": "Aplicar",
+  "moreInfo": "Más información",
+  "photo": "Foto",
+  "video": "Vídeo",
+  "album": "Álbum",
+  "crop": "Recortar",
+  "completed": "completado",
+  "uploading": "Subiendo",
+  "files": "archivo(s)",
+
+  // Header elements
+  "header": {
+    "pages": {
+      "photos": "Fotos",
+      "albums": "Álbumes",
+      "shared": "Compartido",
+      "create": "Crear"
+    },
+    "account": {
+      "settings": "Ajustes",
+      "login": "Iniciar sesión",
+      "logout": "Cerrar sesión",
+      "logoutAll": "Cerrar sesión de todas las cuentas",
+      "add": "Añadir cuenta",
+      "loginOrRegister": "Iniciar sesión o registrarse"
+    }
+  },
+
+  // Settings page
+  "settings": {
+    "title": "Ajustes de la cuenta",
+    "profile": {
+      "title": "Perfil",
+      "username": "Nombre de usuario",
+      "email": "Correo electrónico",
+      "emailVerification": "Código de verificación",
+      "emailVerificationSend": "Enviar correo de verificación"
+    },
+    "security": {
+      "title": "Seguridad",
+      "changePassword": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "forgotPassword": "Contraseña olvidada",
+      "albumSharing": "Álbumes compartidos",
+      "albumSharingPermissions": "Permisos de compartición de álbumes",
+      "deleteShares": "Eliminar comparticiones",
+      "manageData": "Gestionar datos",
+      "deleteAccount": {
+        "description": "Eliminar cuenta y TODOS los álbumes",
+        "button": "Eliminar todo",
+        "confirmation": "¿Estás seguro de que quieres eliminar tu cuenta? Todos tus datos serán eliminados permanentemente."
+      },
+      "error": {
+        "password": "Contraseña incorrecta",
+        "passwordInvalid": "La contraseña debe tener al menos 8 caracteres",
+        "passwordRepeat": "Las contraseñas no coinciden",
+        "unknown": "Ha ocurrido un error desconocido",
+        "passwordChange": "Error al cambiar la contraseña"
+      },
+      "success": {
+        "passwordChange": "Contraseña actualizada con éxito",
+        "changesSaved": "Cambios guardados con éxito"
+      }
+    }
+  },
+
+  "auth": {
+    "title": "Tus fotos de siempre, ",
+    "titleColored": "con el poder de la Inteligencia Artificial",
+    "loginTitle": "Inicia sesión",
+    "registerTitle": "Crea una cuenta gratis",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "emailConfirmation": "Te enviaremos un correo de confirmación a la dirección que introduzcas",
+    "password": "Contraseña",
+    "passwordRepeat": "Repetir contraseña",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "forgot": "¿Contraseña olvidada?",
+    "error": {
+      "usernameInvalid": "El nombre de usuario debe tener entre 4 y 20 caracteres.",
+      "usernameExists": "El nombre de usuario ya está en uso.",
+      "emailInvalid": "Correo electrónico inválido.",
+      "password": "Contraseña incorrecta.",
+      "passwordInvalid": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordRepeat": "Las contraseñas no coinciden.",
+      "login": "El nombre de usuario o la contraseña son incorrectos.",
+      "registerUsername": "El nombre de usuario ya está en uso.",
+      "registerEmail": "El correo electrónico ya está en uso.",
+      "unknown": "Ha ocurrido un error desconocido."
+    },
+    "success": {
+      "register": "¡Cuenta creada con éxito! Por favor, inicia sesión en el formulario de la derecha."
+    }
+  },
+
+  // Main pages
+  "photos": {
+    "title": "Línea de tiempo",
+    "empty": "No tienes fotos o vídeos todavía o el filtro no devolvió resultados.",
+    "uploadPhotos": "Subir fotos",
+    "uploadFolder": "Subir carpeta",
+    "uploadVideos": "Subir vídeos",
+    "detail": {
+      "title": "Información",
+      "nameResolution": "Nombre y resolución",
+      "date": "Fecha de modificación",
+      "size": "Tamaño",
+      "location": "Ubicación",
+      "album": "Álbumes conteniendo esta foto",
+      "deleteConfirmation": "¿Estás seguro de que quieres eliminar esta foto?",
+      "scale": "Escalar",
+      "upscale": "Superresolución",
+      "crop": "Recortar",
+      "orientation": "Orientación",
+      "rotateLeft": "Girar izq.",
+      "rotateRight": "Girar der.",
+      "useAsCover": "Usar como portada del álbum",
+      "addToAlbum": "Añadir a otro álbum",
+      "showOnGoogleMaps": "Ver en Google Maps"
+    }
+  },
+
+  "albums": {
+    "title": "Álbumes",
+    "empty": "No tienes ningún álbum todavía",
+    "create": "Crear nuevo álbum",
+    "delete": "Eliminar álbum",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar este álbum? Todo su contenido será eliminado.",
+    "name": "Nombre del álbum",
+    "generated": "Álbumes generados automáticamente",
+    "elements": "elementos",
+    "select": "Selecciona un álbum",
+    "detail": {
+      "sharedWith": "Compartido con ",
+      "lastUpdate": "Última actualización: "
+    },
+    "error": {
+      "noSelection": "No se ha seleccionado ningún álbum",
+      "invalidName": "Nombre de álbum inválido",
+      "nameLength": "Nombre de álbum demasiado largo",
+      "create": "Error al crear el álbum"
+    }
+  },
+
+  "shared": {
+    "title": "Compartidos contigo",
+    "others": "Compartidos con otros",
+    "empty": "No tienes fotos o videos compartidos aún",
+    "permissionLevel": "Nivel de permisos",
+    "readOnly": "Solo lectura",
+    "readWrite": "Lectura y escritura",
+    "fullAccess": "Acceso total",
+    "codes": {
+      "share": "Compartir",
+      "shareAlbum": "Compartir un álbum",
+      "shareOther": "Compartir con otros usuarios",
+      "copyButton": "Copiar enlace",
+      "enter": "Añadir un álbum de otro usuario",
+      "codeInput": "Código de compartición",
+      "copied": "¡Copiado!"
+    },
+    "error": {
+      "createShare": "Error al compartir: El álbum ya está compartido."
+    },
+    "success": {
+      "createShare": "Álbum compartido con éxito."
+    }
+  },
+
+  "create": {
+    "title": "Crear",
+    "prompt": "Describe qué estás imaginando...",
+    "submit": "Generar",
+    "params": {
+      "title": "Parámetros de generación",
+      "type": {
+        "title": "Tipo de contenido",
+        "image": "Imagen",
+        "video": "Vídeo"
+      },
+      "number": {
+        "title": "Número de imágenes",
+        "subtitle": "Una cantidad mayor tomará más tiempo en generarse"
+      },
+      "resolution": {
+        "title": "Resolución de la imagen",
+        "subtitle": "Una resolución mayor tomará más tiempo en generarse. Se requiere recargar los modelos para cambiar la resolución.",
+        "chips": {
+          "low": "Baja (192x192)",
+          "default": "Por defecto (256x256)",
+          "high": "Alta (512x512)",
+          "veryHigh": "Muy alta (768x768)",
+          "custom": "Personalizada"
+        },
+        "custom": {
+          "width": "Ancho (128-1024px)",
+          "height": "Alto (128-1024px)"
+        }
+      },
+      "quality": {
+        "title": "Calidad de generación",
+        "subtitle": "Una calidad mayor tomará más tiempo en generarse.\nValores recomendados: ente 1 y 4",
+        "chips": {
+          "low": "Baja (1)",
+          "default": "Por defecto (4)",
+          "high": "Alta (8)",
+          "veryHigh": "Muy alta (16)",
+          "custom": "Personalizada"
+        }
+      },
+      "model": {
+        "title": "Modelo de IA generativa",
+        "preload": "Precargar"
+      }
+    },
+    "examplePrompts": {
+      "example1": "Un astronauta cabalgando un caballo en el espacio"
+    },
+    "status": {
+      "title": "Generando imágenes",
+      "subtitle": "Por favor, no salgas de esta página hasta que hayamos terminado.",
+      "download": "Descargando modelos (2.5GiB)...",
+      "load": "Cargando modelos...",
+      "loaded": {
+        "title": "Modelos cargados",
+        "subtitle": "Introduce una descripción y haz clic en generar para empezar."
+      },
+      "generate": "Generando imágenes...",
+      "error": {
+        "download": "Error al descargar los modelos. Por favor, inténtalo de nuevo.",
+        "load": "Error al cargar los modelos. Por favor, recarga la página."
+      }
+    },
+    "firstTime": {
+      "supported": {
+        "title": "Configuración de primera vez",
+        "subtitle": "Necesitamos conocer ciertos detalles de tu dispositivo para poder ofrecerte parámetros de generación correctos.",
+        "ramRequisite": {
+          "title": "Cantidades de memoria del sistema (RAM) y gráfica (VRAM)",
+          "subtitle": "Especifica las cantidades de memoria que posee tu dispositivo. Puedes utilizar <a class='font-bold' href='https://hardzone.es/noticias/tarjetas-graficas/como-saber-cantidad-vram/'>esta guía</a> para conocer estos datos en tu sistema operativo concreto.",
+          "ramAmount": "Cantidad de memoria del sistema (RAM)",
+          "vramAmount": "Cantidad de memoria gráfica (VRAM)"
+        },
+        "change": "Puedes cambiar esta información en cualquier momento para este dispositivo desde los ajustes de tu cuenta."
+      },
+      "unsupported": {
+        "title": "Dispositivo no soportado",
+        "subtitle": "Tu navegador o dispositivo no soporta la tecnología necesaria para utilizar la generación de imágenes.",
+        "details": {
+          "gpuPrerequisite": ": Tu GPU no cumple el siguiente requisito: ",
+          "browserPrerequisite": ": Tu navegador no cumple el siguiente requisito: ",
+          "memoryPrerequisite": ": Tu dispositivo no cumple con los requisitos de memoria mínimos necesarios."
+        }
+      }
+    }
+  },
+  "about": {
+    "title": "Proyecto creado por",
+    "subtitle": "Versión",
+    "github": "Repositorio de GitHub"
+  }
+}

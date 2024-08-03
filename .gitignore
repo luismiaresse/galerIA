@@ -1,41 +1,36 @@
 # Certificates
 cert
+ssl
 
 # Logs
-logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+*npm-debug.log*
+*yarn-debug.log*
+*yarn-error.log*
+*pnpm-debug.log*
+*lerna-debug.log*
 
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
+# Build files
+*node_modules*
+*.DS_Store*
+*dist*
+*dist-ssr*
+*coverage*
 *.local
-
-/cypress/videos/
-/cypress/screenshots/
+*static*
 
 # Editor directories and files
-*static*
 *pycache*
-models
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
+*.vscode*
+*.idea*
+*.suo*
 *.ntvs*
-*.njsproj
-*.sln
+*.njsproj*
+*.sln*
 *.sw?
-
 *.tsbuildinfo
 
-# DB
+# DB and secrets
 *.sqlite
 *.pg*
 .env

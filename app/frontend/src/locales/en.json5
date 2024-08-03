@@ -1,0 +1,283 @@
+// English translations
+{
+  // General elements
+  "add": "Add",
+  "edit": "Edit",
+  "change": "Change",
+  "delete": "Delete",
+  "share": "Share",
+  "select": "Select",
+  "_create": "Create",
+  "cancel": "Cancel",
+  "download": "Download",
+  "details": "Details",
+  "search": "Search",
+  "searchPlaceholder": "Search by dates (YYYY-MM-DD), objects or locations",
+  "save": "Save",
+  "saveChanges": "Save changes",
+  "saveContinue": "Save and continue",
+  "apply": "Apply",
+  "moreInfo": "More information",
+  "photo": "Photo",
+  "video": "Video",
+  "album": "Album",
+  "crop": "Crop",
+  "completed": "completed",
+  "uploading": "Uploading",
+  "files": "file(s)",
+
+  // Header elements
+  "header": {
+    "pages": {
+      "photos": "Photos",
+      "albums": "Albums",
+      "shared": "Shared",
+      "create": "Create"
+    },
+    "account": {
+      "settings": "Settings",
+      "login": "Login",
+      "logout": "Logout",
+      "logoutAll": "Logout from all accounts",
+      "add": "Add account",
+      "loginOrRegister": "Login or register"
+    }
+  },
+
+  // Settings page
+  "settings": {
+    "title": "Account settings",
+    "profile": {
+      "title": "Profile",
+      "username": "Username",
+      "email": "Email",
+      "emailVerification": "Verification code",
+      "emailVerificationSend": "Send verification email"
+    },
+    "security": {
+      "title": "Security",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "forgotPassword": "Forgot password",
+      "albumSharing": "Shared albums",
+      "albumSharingPermissions": "Album sharing permissions",
+      "deleteShares": "Delete shares",
+      "manageData": "Manage data",
+      "deleteAccount": {
+        "description": "Delete account and ALL albums",
+        "button": "Delete everything",
+        "confirmation": "Are you sure you want to delete your account? This action cannot be undone."
+      },
+      "error": {
+        "password": "Wrong password",
+        "passwordInvalid": "Password should be at least 8 characters long",
+        "passwordRepeat": "Passwords don't match",
+        "unknown": "Unknown error occurred",
+        "passwordChange": "Error changing password"
+      },
+      "success": {
+        "passwordChange": "Password changed successfully",
+        "changesSaved": "Changes saved successfully"
+      }
+    }
+  },
+
+  "auth": {
+    "title": "Your usual photos, ",
+    "titleColored": "with the power of Artificial Inteligence",
+    "loginTitle": "Log in",
+    "registerTitle": "Create a free account",
+    "username": "Username",
+    "email": "Email",
+    "emailConfirmation": "We will send you a confirmation email to the provided address",
+    "password": "Password",
+    "passwordRepeat": "Repeat password",
+    "login": "Log in",
+    "register": "Register",
+    "forgot": "Forgot password?",
+    "error": {
+      "usernameInvalid": "Username must be between 4 and 20 characters long.",
+      "usernameExists": "Username already in use.",
+      "emailInvalid": "Invalid email.",
+      "password": "Wrong password.",
+      "passwordInvalid": "Password should be at least 8 characters long.",
+      "passwordRepeat": "Passwords don't match.",
+      "login": "User or password incorrect.",
+      "registerUsername": "Username already in use.",
+      "registerEmail": "Email already in use.",
+      "unknown": "Unknown error occurred."
+    },
+    "success": {
+      "register": "¡Account created successfully! Please, log in on the right form."
+    }
+  },
+
+  // Main pages
+  "photos": {
+    "title": "Timeline",
+    "empty": "You don't have any photos yet or filter did not match any results.",
+    "uploadPhotos": "Upload photos",
+    "uploadFolder": "Upload folder",
+    "uploadVideos": "Upload videos",
+    "detail": {
+      "title": "Multimedia information",
+      "nameResolution": "Name and resolution",
+      "date": "Modification date",
+      "size": "Size",
+      "location": "Location",
+      "album": "Albums containing this element",
+      "deleteConfirmation": "Are you sure you want to delete this element?",
+      "scale": "Scale",
+      "upscale": "Superresolution",
+      "crop": "Crop",
+      "orientation": "Orientation",
+      "rotateLeft": "Rotate left",
+      "rotateRight": "Rotate right",
+      "useAsCover": "Use as album cover",
+      "addToAlbum": "Add to another album",
+      "showOnGoogleMaps": "Show on Google Maps"
+    }
+  },
+
+  "albums": {
+    "title": "Albums",
+    "empty": "You don't have any albums yet",
+    "create": "Create new album",
+    "delete": "Delete album",
+    "deleteConfirmation": "Are you sure you want to delete this album? It will also delete all its contents.",
+    "name": "Album name",
+    "generated": "Auto-generated albums",
+    "elements": "elements",
+    "select": "Select an album",
+    "detail": {
+      "sharedWith": "Shared with ",
+      "lastUpdate": "Last update: "
+    },
+    "error": {
+      "noSelection": "No album selected",
+      "invalidName": "Invalid album name",
+      "nameLength": "Album name too long",
+      "create": "Error creating album"
+    }
+  },
+
+  "shared": {
+    "title": "Shared with you",
+    "others": "Shared with others",
+    "empty": "You don't have any shared albums yet",
+    "permissionLevel": "Permission level",
+    "readOnly": "Read-only",
+    "readWrite": "Read and write",
+    "fullAccess": "Full access",
+    "codes": {
+      "share": "Sharing",
+      "shareAlbum": "Share an album",
+      "shareOther": "Share with other users",
+      "copyButton": "Copy link",
+      "enter": "Add other user's album",
+      "codeInput": "Sharing code",
+      "copied": "¡Copied!"
+    },
+    "error": {
+      "createShare": "Error creating share."
+    },
+    "success": {
+      "createShare": "Album shared successfully."
+    }
+  },
+
+  "create": {
+    "title": "Create",
+    "prompt": "Describe what you are imagining...",
+    "submit": "Generate",
+    "params": {
+      "title": "Generation parameters",
+      "type": {
+        "title": "Content type",
+        "image": "Image",
+        "video": "Video"
+      },
+      "number": {
+        "title": "Number of images",
+        "subtitle": "A higher quantity will take longer to generate"
+      },
+      "resolution": {
+        "title": "Image resolution",
+        "subtitle": "A higher resolution will take longer to generate. Changing resolution needs a model reload.",
+        "chips": {
+          "low": "Low (192x192)",
+          "default": "Default (256x256)",
+          "high": "High (512x512)",
+          "veryHigh": "Very high (768x768)",
+          "custom": "Custom"
+        },
+        "custom": {
+          "width": "Width (128-1024px)",
+          "height": "Height (128-1024px)"
+        }
+      },
+      "quality": {
+        "title": "Generation quality",
+        "subtitle": "A higher quality will take longer to generate.\nRecommended values are between 1 and 4",
+        "chips": {
+          "low": "Low (1)",
+          "default": "Default (4)",
+          "high": "High (8)",
+          "veryHigh": "Very high (16)",
+          "custom": "Custom"
+        }
+      },
+      "model": {
+        "title": "AI generative model",
+        "preload": "Preload"
+      }
+    },
+    "examplePrompts": {
+      "example1": "An astronaut riding a horse in space"
+    },
+    "status": {
+      "title": "Generating images",
+      "subtitle": "Please, do not leave this page until generation is complete.",
+      "download": "Downloading models (2.5GiB)...",
+      "load": "Loading models...",
+      "loaded": {
+        "title": "Models loaded",
+        "subtitle": "Enter a prompt and click generate to start."
+      },
+      "generate": "Generating images...",
+      "error": {
+        "download": "Error downloading models. Please, try again.",
+        "load": "Error loading models. Please, try again."
+      }
+    },
+    "firstTime": {
+      "supported": {
+        "title": "First time configuration",
+        "subtitle": "We need to know certain details of your device to offer you the correct generation parameters.",
+        "ramRequisite": {
+          "title": "System memory (RAM) and graphics memory (VRAM) amounts",
+          "subtitle": "Specify the amount of memory your device has. You can use <a class='font-bold' href='https://www.makeuseof.com/how-check-how-much-vram-you-have/'>this guide to find out this information in your specific operating system.",
+          "ramAmount": "System memory (RAM) amount",
+          "vramAmount": "Graphics memory (VRAM) amount"
+        },
+        "change": "You can change this information for this device later in your account settings."
+      },
+      "unsupported": {
+        "title": "Unsupported device",
+        "subtitle": "Your device or browser does not support the necessary technology to use image generation.",
+        "details": {
+          "gpuPrerequisite": ": Your GPU does not meet the following prerequisite: ",
+          "browserPrerequisite": ": Your browser does not meet the following prerequisite: ",
+          "memoryPrerequisite": ": Your device does not meet the minimum memory requirements."
+        }
+      }
+    }
+  },
+  "about": {
+    "title": "Project created by",
+    "subtitle": "Version",
+    "github": "GitHub repository"
+  }
+}

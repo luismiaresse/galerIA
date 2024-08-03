@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "ESNext",
+    "paths": {
+      "@js/*": ["./src/assets/js/*"],
+      "@ts/*": ["./src/assets/ts/*"],
+      "@css/*": ["./src/assets/css/*"],
+      "@img/*": ["./src/assets/img/*"],
+      "@/*": ["./src/*"]
+    },
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node", "vite/client", "jquery", "@webgpu/types"]
+  },
+  "include": ["./src/assets/**/*.ts", "./src/**/*.vue", "./test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "build"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
