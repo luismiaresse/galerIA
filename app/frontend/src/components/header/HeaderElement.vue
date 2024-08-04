@@ -5,7 +5,7 @@
         <md-icon
           :class="{
             'material-symbols-outlined': !checkIfActiveLink(),
-            'material-symbols-rounded': checkIfActiveLink(),
+            'material-symbols-rounded': checkIfActiveLink()
           }"
         >
           {{ icon }}
@@ -26,8 +26,8 @@
     methods: {
       checkIfActiveLink() {
         return this.$route.name === this.routerName;
-      },
-    },
+      }
+    }
   };
 </script>
 
@@ -50,7 +50,7 @@
   }
 
   .header-element p {
-    margin-left: 1rem;
+    margin-left: 0.6rem;
   }
 
   .selected-bottom {

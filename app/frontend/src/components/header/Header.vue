@@ -14,7 +14,6 @@
   <header>
     <RouterLink id="logo" to="/">
       <img src="@img/logo.webp" alt="logo" />
-      <p>galer<span>IA</span></p>
     </RouterLink>
     <ul id="nav-items">
       <li>
@@ -68,7 +67,7 @@
   </header>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
   @import "@css/custom-media.css";
 
   header {
@@ -92,8 +91,7 @@
   #nav-items {
     display: flex;
     flex-direction: row;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto;
     position: relative;
     list-style: none;
     justify-content: space-around;
@@ -108,14 +106,11 @@
       position: relative;
     }
     #nav-items {
-      margin-top: 65px;
+      margin-top: 50px;
       width: auto;
     }
     #nav-items li {
       margin: 1rem 0;
-    }
-    #account {
-      margin-top: 1rem;
     }
   }
 
@@ -134,10 +129,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+
+      & li {
+        margin: 1rem 0;
+      }
     }
-    #nav-items li {
-      margin: 1rem 0;
-    }
+
     #account {
       position: inherit !important;
       right: auto !important;
@@ -154,19 +151,18 @@
     font-size: 25px;
     margin-right: 3%;
     left: 2%;
-  }
 
-  #logo span {
-    background: var(--gradiente);
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    padding: 0;
-  }
+    & span {
+      background: var(--gradiente);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding: 0;
+    }
 
-  #logo img {
-    width: 80px;
-    height: 80px;
-    border-radius: 25px;
+    & img {
+      height: 45px;
+      max-width: fit-content;
+    }
   }
 
   /* Account elements */
@@ -178,25 +174,25 @@
     cursor: pointer;
     margin-left: 3%;
     right: 2%;
-  }
 
-  #account img {
-    min-width: 50px;
-    width: 50px;
-    min-height: 50px;
-    height: 50px;
-    aspect-ratio: 1/1;
-    border-radius: 100%;
-    margin-left: 1rem;
-  }
+    & img {
+      min-width: 50px;
+      width: 50px;
+      min-height: 50px;
+      height: 50px;
+      aspect-ratio: 1/1;
+      border-radius: 100%;
+      margin-left: 1rem;
+    }
 
-  #account p {
-    text-wrap: nowrap;
-  }
+    & p {
+      text-wrap: nowrap;
+    }
 
-  #account:hover {
-    background: var(--gradiente);
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    &:hover {
+      background: var(--gradiente);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   }
 </style>
