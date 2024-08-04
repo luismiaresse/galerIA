@@ -1,9 +1,15 @@
-# galerIA
 
-## An open source gallery web application with AI features executed right on the browser
+<div align="center">
+  <img src="logo.webp" />
+</div>
+
+<h2 align="center">An open source gallery web application with AI features executed on the browser</h2>
+
+<img style="border-radius: 10px" src="docs/photos.webp" />
 
 ## Features
 
+- **Multimedia management**: Upload, organize and share albums to other users.
 - **Object detection**: Search through your gallery by objects in the image by using YOLOv8.
 - **Image upscaling**: Enhance low resolution images with Remacri.
 - **Image generation**: Generate any image you want quickly with the power of Stable Diffussion Turbo.
@@ -29,7 +35,7 @@ To execute most of the models contained in this project, you need to be running 
 
 For local development, you will also need:
 
-- **Python >=3.11**: To run Django and gunicorn backends. Preferably in a virtual environment.
+- **Python >=3.11**: To run Django backend. Preferably in a virtual environment.
 - **NPM**: To run frontend.
 
 ## Installation
