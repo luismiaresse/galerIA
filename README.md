@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src="logo.webp" />
+  <img src="docs/logo.webp" style="max-width: 500px" />
 </div>
 
 <h2 align="center">An open source gallery web application with AI features executed on the browser</h2>
