@@ -13,9 +13,15 @@
   <h1 class="text-primary text-center">
     {{ $t("auth.title") }}<span>{{ $t("auth.titleColored") }}</span>
   </h1>
-  <div class="mt-10 flex flex-row flex-wrap justify-center gap-12 items-center">
-    <Register />
-    <Login />
+  <div
+    class="mt-10 flex flex-col justify-between items-center gap-12 w-full h-[90%]"
+  >
+    <div
+      class="flex flex-row flex-wrap justify-center items-center gap-4 w-full"
+    >
+      <Register />
+      <Login />
+    </div>
     <About />
   </div>
 </template>

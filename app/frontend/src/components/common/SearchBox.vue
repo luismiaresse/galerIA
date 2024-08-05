@@ -24,7 +24,7 @@
       // Render and focus the search field
       focusEnterFunc();
     } else if (e.key === "Escape") {
-      focused.value = false;
+      focusLeaveFunc();
     }
   };
 

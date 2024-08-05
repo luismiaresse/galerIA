@@ -88,8 +88,8 @@
   }
 
   #content {
-    padding: 0 2.5% 3% 2.5%;
-    height: 88dvh;
+    padding: 0 2rem 0 2rem;
+    height: 84dvh;
   }
 
   footer {

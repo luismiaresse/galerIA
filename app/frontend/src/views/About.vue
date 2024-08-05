@@ -1,10 +1,14 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="text-center flex flex-col">
+  <div class="text-center flex flex-col pb-6 relative bottom-0">
     <h3>
       {{ $t("about.title")
-      }}<a href="https://github.com/luismiaresse" class="color-primary">
+      }}<a
+        href="https://github.com/luismiaresse"
+        target="_blank"
+        class="color-primary"
+      >
         Luismi</a
       >
     </h3>
