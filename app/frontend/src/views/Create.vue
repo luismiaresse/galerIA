@@ -7,6 +7,7 @@
   import { triggerReload } from "@ts/common";
   import { LOCALSTORAGE_DEVICE_INFO } from "@ts/constants";
   import { useI18n } from "vue-i18n";
+  import { onBeforeRouteLeave } from "vue-router";
 
   // Change title
   const $t = useI18n().t;
@@ -125,6 +126,11 @@
     // Prevent scrolling
     $("#app").css("overflow-y", "hidden");
   };
+
+  // Restore scrolling
+  onBeforeRouteLeave(() => {
+    $("#app").css("overflow-y", "unset");
+  });
 
   const toggleFileType = (value) => {
     if (params.value.fileType === value) {
