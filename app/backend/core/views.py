@@ -773,7 +773,8 @@ class UserMediaAPI(KnoxAPIView):
             mediaid = request.GET.get('mediaid')
             skipfiles = request.GET.get('skipfiles')
             albumid = request.GET.get('albumid')
-                    
+            usermedia = UserMedia.objects.filter(id=user.id)
+            
             # If album ID is provided, get media from that album
             if albumid:
                 usermedia = UserMedia.objects.filter(id=user.id, album_id=albumid)
@@ -798,7 +799,7 @@ class UserMediaAPI(KnoxAPIView):
                     usermedia.file = None
                 
                 return HttpResponse("[" + str(usermedia) + "]", content_type='application/json')
-                
+            
             # Get media from album
             media = []
             images = usermedia.filter(kind=MediaKinds.IMAGE.value)
