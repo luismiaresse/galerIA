@@ -277,7 +277,8 @@
   },
   "about": {
     "title": "Project created by",
-    "subtitle": "Version",
+    // TODO Get version
+    "subtitle": "Version 'master'",
     "github": "GitHub repository"
   }
 }

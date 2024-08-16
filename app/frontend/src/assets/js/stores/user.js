@@ -13,6 +13,13 @@ export const useUserStore = defineStore({
     },
     clearUser() {
       this.user = null;
+    },
+    isUserSet() {
+      // Check if all properties are set
+      if (!this.user) return false;
+      if (!this.user.username) return false;
+      if (!this.user.email) return false;
+      return true;
     }
   }
 });

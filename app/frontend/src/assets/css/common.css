@@ -62,6 +62,7 @@
 }
 
 .dialog-translucent {
+  backdrop-filter: blur(20px);
   background: rgba(0, 0, 0, 0.66);
   border: 1px solid var(--texto-gris);
   border-radius: 30px;

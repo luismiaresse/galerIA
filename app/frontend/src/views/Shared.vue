@@ -7,13 +7,8 @@
   import { getAlbum } from "@ts/requests/album";
   import { ref } from "vue";
   import { useI18n } from "vue-i18n";
-  import { useRouter } from "vue-router";
 
   const auth = getAuth();
-  if (!auth) {
-    const router = useRouter();
-    router.push({ name: "Auth" });
-  }
 
   // Change title
   const $t = useI18n().t;

@@ -1,10 +1,6 @@
-import {
-  AUTH_TOKEN_PREFIX,
-  LOCALSTORAGE_AUTH,
-  LOCALSTORAGE_USERDATA
-} from "./constants";
+import { LOCALSTORAGE_AUTH, LOCALSTORAGE_USERDATA } from "./constants";
 
-function getAuth() {
+export const getAuth = () => {
   const auth = localStorage.getItem(LOCALSTORAGE_AUTH);
   if (!auth) {
     return undefined;
@@ -18,17 +14,26 @@ function getAuth() {
       resetAuth();
       return undefined;
     }
-    return AUTH_TOKEN_PREFIX + login.token;
+    return login.token;
   }
-}
+};
 
-function setAuth(auth: Object) {
+export const setAuth = (auth: Object) => {
   localStorage.setItem(LOCALSTORAGE_AUTH, JSON.stringify(auth));
-}
+};
 
-function resetAuth() {
+export const resetAuth = () => {
   localStorage.removeItem(LOCALSTORAGE_USERDATA);
   localStorage.removeItem(LOCALSTORAGE_AUTH);
-}
+};
 
-export { resetAuth, getAuth, setAuth };
+export const checkAuthRouter = (to: any, from: any, next: any) => {
+  const auth = getAuth();
+  if (auth) {
+    if (to.path.startsWith("/auth")) next("/");
+    else next();
+  } else {
+    if (!to.path.startsWith("/auth")) next("/auth");
+    else next();
+  }
+};

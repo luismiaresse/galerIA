@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('album_elements', models.IntegerField()),
                 ('creationdate', models.DateTimeField()),
                 ('lastupdate', models.DateTimeField()),
-                ('cover', models.CharField(null=True)),
+                ('cover', models.IntegerField(null=True)),
                 ('is_owner', models.BooleanField()),
                 ('permissions', models.CharField(max_length=15, null=True)),
                 ('code', models.CharField(max_length=8, null=True)),
@@ -40,7 +40,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('username', models.CharField(max_length=50)),
                 ('email', models.CharField(max_length=50)),
-                ('photo', models.CharField()),
             ],
             options={
                 'db_table': '"public"."user_data_view"',
@@ -63,7 +62,6 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(max_length=50, null=True)),
                 ('label', models.CharField(max_length=50, null=True)),
                 ('detectedobjects', models.CharField(max_length=100, null=True)),
-                ('file', models.CharField()),
             ],
             options={
                 'db_table': '"public"."user_media_view"',
@@ -89,7 +87,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('filename', models.CharField(max_length=500)),
-                ('file', models.CharField(null=True)),
                 ('modificationdate', models.DateTimeField()),
                 ('kind', models.CharField(max_length=20)),
                 ('coordinates', models.CharField(max_length=50, null=True)),

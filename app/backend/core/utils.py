@@ -1,12 +1,12 @@
 import base64
-import binascii
 import io
+import os
+import shutil
+from django.conf import settings
 from django.core.files import File
 import requests
 import re
 from PIL import Image
-
-from core.common import MediaKinds
 
 def validate_base64_image(base64img: str):
     try:
@@ -16,22 +16,51 @@ def validate_base64_image(base64img: str):
     except:
         return False
 
-
-def encode_file(file, kind: MediaKinds):
-    if isinstance(file, File):
-        return base64.b64encode(file.read()).decode('utf-8')
-    if isinstance(file, str):
-        return validate_and_clean_base64_header(file, kind == MediaKinds.IMAGE.value or kind == MediaKinds.PROFILE.value)
-    return base64.b64encode(file).decode('utf-8')
-
-def decode_file(file):
-    if file is None:
-        return None
-    if isinstance(file, bytes):
-        return file.decode('utf-8')
-    if isinstance(file, memoryview):
-        return file.tobytes().decode('utf-8')
-    return file
+# Writes file to specified path
+def write_file(filepath: str, file: File | io.BufferedReader):
+    try:
+        with open(filepath, 'wb+') as dest:
+            if type(file) is File:
+                for chunk in file.chunks():
+                    dest.write(chunk)
+            elif type(file) is io.BufferedReader:
+                shutil.copyfileobj(file, dest)
+            else:
+                dest.write(file.read())
+    except Exception as e:
+        print(e)
+            
+# Creates or updates media file in server's media folder
+def create_update_media_file(username: str, id: int, fileOrCopyId: File | io.BufferedReader | int):
+    filename = str(id)
+    filepath = settings.MEDIA_ROOT / username / filename
+    # Update media file
+    if os.path.exists(filepath):
+        os.remove(filepath)
+    
+    # Create copy of media file
+    if type(fileOrCopyId) is int:
+        copypath = settings.MEDIA_ROOT / username / str(fileOrCopyId)
+        with open(copypath, 'rb') as src:
+            if os.path.exists(copypath):
+                write_file(filepath, src)
+    # Create media file
+    else:
+        write_file(filepath, fileOrCopyId)
+                     
+def get_media_file(username: str, id: int):
+    filename = str(id)
+    filepath = settings.MEDIA_ROOT / username / filename
+    if os.path.exists(filepath):
+        file = open(filepath, 'rb')
+        return File(file)
+    return None
+    
+def delete_media_file(username: str, id: int):
+    filename = str(id)
+    filepath = settings.MEDIA_ROOT / username / filename
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
 # Removes data header
 def validate_and_clean_base64_header(file, validate=True):

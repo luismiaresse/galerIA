@@ -10,7 +10,7 @@
   const props = defineProps<{
     type: "share" | "add";
     mediaid?: number;
-    media?: String[];
+    media?: Blob[];
   }>();
 
   const auth = getAuth();
@@ -102,7 +102,7 @@
   };
 
   const addMediaToAlbumById = async () => {
-    putMedia(auth!, { id: props.mediaid }, selectedAlbum.value!.id).then(
+    putMedia(auth!, { id: props.mediaid }, selectedAlbum.value!).then(
       (media) => {
         if (media) {
           console.log("Media added to album");
@@ -116,11 +116,13 @@
   const addMediaToAlbumByArray = async () => {
     for (const m of props.media!) {
       console.log(m, props.media);
+      console.log("Selected album", selectedAlbum.value!);
+
       const mediaPut: IMedia = {
-        file: m as string,
+        file: m,
         kind: MediaKinds.IMAGE
       };
-      putMedia(auth!, mediaPut, selectedAlbum.value!.id).then((med) => {
+      putMedia(auth!, mediaPut, selectedAlbum.value!).then((med) => {
         if (med) {
           console.log("Media added to album");
         } else {
@@ -253,6 +255,7 @@
       transform: translate(-50%, -50%);
       width: 80%;
       max-width: 500px;
+      min-width: 300px;
 
       .album-option {
         background-color: var(--background);

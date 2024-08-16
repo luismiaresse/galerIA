@@ -12,30 +12,33 @@ export const triggerReload = () => {
   location.reload();
 };
 
-export const mediaBase64 = async (
-  file: string | Blob | File,
-  kind: MediaKinds
-): Promise<string | null> => {
+export const mediaBlob = async (
+  file: string | Blob | File
+): Promise<Blob | null> => {
   if (!file) return null;
-  if (String(file).startsWith("blob:")) {
-    const response = await fetch(String(file));
-    file = await response.blob();
-  }
-  if (file instanceof (Blob || File)) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  if (file.startsWith("data:video") || file.startsWith("data:image")) {
+
+  // Includes File
+  if (file instanceof Blob) {
     return file;
   }
 
-  if (kind === MediaKinds.VIDEO) return "data:video/*;base64," + file;
-  else return "data:image/*;base64," + file;
+  // File URL
+  if (file.startsWith("blob:")) {
+    const response = await fetch(String(file));
+    file = await response.blob();
+    if (!file) return null;
+    return file;
+  }
+
+  // Base64
+  if (file.startsWith("data:video") || file.startsWith("data:image")) {
+    // Transform base64 to blob
+    const response = await fetch(String(file));
+    file = await response.blob();
+    if (!file) return null;
+    return file;
+  }
+  return null;
 };
 
 export const intlNumberDate = (
@@ -66,6 +69,13 @@ export const intlStringDate = (
     dateStyle: dateStyle,
     timeStyle: timeStyle
   }).format(new Date(date));
+};
+
+export const getURLFromBlob = (blob?: Blob | File | null) => {
+  if (!blob) {
+    return "";
+  }
+  return URL.createObjectURL(blob);
 };
 
 export const detectionsArrayToString = (detections: IDetections[]) => {
@@ -121,26 +131,34 @@ export const createThumbnail = (media: IMedia): Promise<IMedia> | null => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  const img = new Image();
   // Return a promise
   return new Promise((resolve, reject) => {
     if (media.kind === MediaKinds.IMAGE || media.kind === MediaKinds.PROFILE) {
-      mediaBase64(media.file!, media.kind).then((base64) => {
-        img.src = base64!;
-        img.onload = () => {
-          const thumbHeight = 200;
-          const thumbWidth = (img.width / img.height) * thumbHeight;
-          canvas.width = thumbWidth;
-          canvas.height = thumbHeight;
-          if (!ctx) {
-            reject("No canvas context");
-            return;
-          }
-          ctx.drawImage(img, 0, 0, thumbWidth, thumbHeight);
-          media.thumbnail = canvas.toDataURL("image/jpeg", 0.85);
-          resolve(media);
-        };
-      });
+      const img = new Image();
+      img.src = URL.createObjectURL(media.file!);
+      img.onload = () => {
+        const thumbHeight = 200;
+        const thumbWidth = (img.width / img.height) * thumbHeight;
+        canvas.width = thumbWidth;
+        canvas.height = thumbHeight;
+        if (!ctx) {
+          reject("No canvas context");
+          return;
+        }
+        ctx.drawImage(img, 0, 0, thumbWidth, thumbHeight);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject("No blob");
+              return;
+            }
+            media.thumbnail = blob;
+            resolve(media);
+          },
+          "image/jpeg",
+          0.8
+        );
+      };
     } else if (media.kind === MediaKinds.VIDEO) {
       // Do not create thumbnail for videos
       resolve(media);

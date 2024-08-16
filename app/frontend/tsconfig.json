@@ -27,7 +27,7 @@
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false /* Prevents unused router params from generating errors */,
     "noFallthroughCasesInSwitch": true,
     "types": ["node", "vite/client", "jquery", "@webgpu/types"]
   },

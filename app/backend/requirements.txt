@@ -4,7 +4,6 @@ django-vite>=3.0.3
 django-cors-headers>=4.3.1
 django-rest-knox>=4.2.0
 gunicorn>=22.0.0
-# mod-wsgi>=5.0.0
 psycopg2-binary>=2.9.5
 whitenoise[brotli]>=6.6.0
 python-dateutil>=2.9.0
@@ -14,3 +13,5 @@ drf-spectacular>=0.27.2
 # Image verification
 pillow>=10.4.0
 python-dotenv>=1.0.0
+# File encryption
+# django-encrypted-files>=0.0.10

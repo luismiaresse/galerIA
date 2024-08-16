@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-// import Home from "@/views/Home.vue";
 import Photos from "@/views/Photos.vue";
 import Albums from "@/views/Albums.vue";
 import AlbumDetail from "@/views/AlbumDetail.vue";
@@ -11,42 +10,45 @@ import Auth from "@/views/Auth.vue";
 import Settings from "@/views/Settings.vue";
 import NotFound from "@/views/NotFound.vue";
 import PhotoDetail from "@/views/PhotoDetail.vue";
+import { checkAuthRouter } from "./auth";
+import Test from "@/views/Test.vue";
 
 const routes = [
-  // {
-  //   path: "/",
-  //   name: "Home",
-  //   component: Home
-  // },
   {
     path: "/",
     name: "Photos",
-    component: Photos
+    component: Photos,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/:mediaid",
     name: "PhotoDetail",
-    component: PhotoDetail
+    component: PhotoDetail,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/albums/",
     name: "Albums",
-    component: Albums
+    component: Albums,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/albums/:albumid/",
     name: "AlbumDetail",
-    component: AlbumDetail
+    component: AlbumDetail,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/albums/:albumid/:mediaid",
     name: "AlbumPhotoDetail",
-    component: PhotoDetail
+    component: PhotoDetail,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/shared/",
     name: "Shared",
-    component: Shared
+    component: Shared,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/create/",
@@ -61,12 +63,19 @@ const routes = [
   {
     path: "/auth/",
     name: "Auth",
-    component: Auth
+    component: Auth,
+    beforeEnter: checkAuthRouter
   },
   {
     path: "/settings/",
     name: "Settings",
-    component: Settings
+    component: Settings,
+    beforeEnter: checkAuthRouter
+  },
+  {
+    path: "/test/",
+    name: "Test",
+    component: Test
   },
   // Any other route gets 404 page
   {

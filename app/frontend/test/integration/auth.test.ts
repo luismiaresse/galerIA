@@ -3,7 +3,7 @@ import { login, logout, register } from "@ts/requests/auth";
 import { expect, describe, it, afterAll, beforeAll } from "vitest";
 import { TESTUSER_EMAIL, TESTUSER_USERNAME } from "../setup";
 import { AUTH_TOKEN_PREFIX } from "@ts/constants";
-import { deleteAccount, getAccountData } from "@ts/requests/user";
+import { deleteAccount, getUserData } from "@ts/requests/user";
 
 describe("Authentication subsystem", () => {
   const CORRECT_USERNAME = "user";
@@ -309,7 +309,7 @@ describe("Authentication subsystem", () => {
       expect(isLoggedOut).toBe(true);
 
       // Try to get the user data with the token
-      const data = await getAccountData(token);
+      const data = await getUserData(token);
       expect(data).toBeNull();
     });
 
@@ -320,7 +320,7 @@ describe("Authentication subsystem", () => {
       expect(isLoggedOut).toBe(false);
 
       // Try to get the user data with the token
-      const data = await getAccountData(token);
+      const data = await getUserData(token);
       expect(data).not.toBeNull();
     });
 
@@ -330,7 +330,7 @@ describe("Authentication subsystem", () => {
       expect(isLoggedOut).toBe(false);
 
       // Try to get the user data with the token
-      const data = await getAccountData(token);
+      const data = await getUserData(token);
       expect(data).not.toBeNull();
     });
 

@@ -1,3 +1,19 @@
+<script setup lang="ts">
+  import { RouterLink, useRoute } from "vue-router";
+
+  const props = defineProps<{
+    icon: string;
+    routerName: string;
+    displayName: string;
+  }>();
+
+  const route = useRoute();
+
+  const checkIfActiveLink = () => {
+    return route.name === props.routerName;
+  };
+</script>
+
 <template>
   <div>
     <RouterLink class="header-element" :to="{ name: routerName }">
@@ -16,20 +32,6 @@
     </RouterLink>
   </div>
 </template>
-
-<script>
-  import { RouterLink } from "vue-router";
-
-  export default {
-    props: ["icon", "routerName", "displayName"],
-    components: { RouterLink },
-    methods: {
-      checkIfActiveLink() {
-        return this.$route.name === this.routerName;
-      }
-    }
-  };
-</script>
 
 <style scoped>
   .header-element {

@@ -1,13 +1,12 @@
 
 create or replace view public.user_data_view as
-select distinct u.id, u.username, u.email, m.file as photo
-from public.media m 
-	left join public.media_album ma on m.id = ma.media_id 
-	left join public.album a on a.id = ma.album_id
-	left join public.album_user au on a.id = au.album_id
-	left join public.auth_user u on u.id = au.user_id
-where m.kind = 'profile' and a.name = 'default'
-group by u.id, u.username, u.email, m.file;
+select distinct on (u.id) u.id, u.username, u.email, m.id as photoid
+from auth_user u
+left join album_user au on u.id = au.user_id
+left join album a on au.album_id = a.id and a.name = 'default'
+left join media_album ma on a.id = ma.album_id
+left join media m on ma.media_id = m.id and m.kind = 'profile'
+order by u.id desc;
 
 
 create or replace view public.user_albums_view as
@@ -32,6 +31,5 @@ from public.media m
 	left join public.album a on a.id = ma.album_id
 	left join public.album_user au on a.id = au.album_id
 	left join public.auth_user u on u.id = au.user_id
-where kind != 'profile'
 order by m.modificationdate desc;
 

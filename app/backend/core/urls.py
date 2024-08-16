@@ -18,9 +18,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
-from core.views import LoginAPI, MediaAPI, RegisterAPI, UserAlbumsAPI, UserMediaAPI, index
-from core.views import UserAPI, AlbumAPI
-from .common import USER_API, ALBUM_API, USER_ALBUMS_API, MEDIA_API, LOGIN_API, LOGOUT_API, REGISTER_API, USER_MEDIA_API
+from core.views import LoginAPI, MediaAPI, RegisterAPI, UserAlbumsAPI, UserMediaAPI, FileAPI, UserAPI, AlbumAPI, index
+from .common import USER_API, ALBUM_API, USER_ALBUMS_API, MEDIA_API, LOGIN_API, LOGOUT_API, REGISTER_API, USER_MEDIA_API, FILE_API
 from knox.views import LogoutView as LogoutAPI
 
 
@@ -39,15 +38,17 @@ urlpatterns = [
     path('create/', index),
     path('auth/', index),
     path('settings/', index),
+    path('test/', index),
     # APIs
     path(LOGIN_API, LoginAPI.as_view(), name='login'),
     path(REGISTER_API, RegisterAPI.as_view(), name='register'),
     path(LOGOUT_API, LogoutAPI.as_view(), name='logout'),
-    path(USER_API, UserAPI.as_view(), name='user'),
+    path(USER_API, view=UserAPI.as_view(), name='user'),
     path(ALBUM_API, AlbumAPI.as_view(), name='album'),
     path(USER_ALBUMS_API, UserAlbumsAPI.as_view(), name='albums'),
     path(MEDIA_API, MediaAPI.as_view(), name='media'),
     path(USER_MEDIA_API, UserMediaAPI.as_view(), name='medias'),
+    path(FILE_API, FileAPI.as_view(), name='file'),
     # Robots.txt
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,7 +1,5 @@
 <script setup lang="ts">
   import { getAuth } from "@ts/auth";
-  import { mediaBase64 } from "@ts/common";
-  import { MediaKinds } from "@ts/constants";
   import { IAlbum } from "@ts/definitions";
   import { getSharedAlbumFromCode } from "@ts/requests/album";
   import { ref } from "vue";
@@ -33,9 +31,6 @@
         console.error("Error getting shared album");
         return;
       }
-      mediaBase64(data.cover!, MediaKinds.IMAGE).then((cover) => {
-        data.cover = cover!;
-      });
 
       emit("new-shared-album", data);
     });

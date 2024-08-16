@@ -12,7 +12,6 @@
     allowCreation: boolean;
     albums?: IUserAlbum[];
   }>();
-  // Wait for props to be defined
 
   const auth = getAuth();
 

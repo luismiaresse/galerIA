@@ -61,7 +61,6 @@ class AlbumUser(models.Model):
 class Media(models.Model):
     id = models.AutoField(primary_key=True)
     filename = models.CharField(max_length=500)
-    file = models.CharField(null=True)   # Allow null for default profile photos
     modificationdate = models.DateTimeField()
     kind = models.CharField(max_length=20)    # Can be 'image', 'video' or 'profile' (for profile photos)
     # Optional fields
@@ -86,8 +85,6 @@ class Media(models.Model):
             "label": self.label,
             "detectedobjects": self.detectedobjects
         }
-        if (self.file is not None):
-            string["file"] = utils.decode_file(self.file)
         return json.dumps(string)
     
 # Intermediate table for Media and Album
@@ -115,7 +112,7 @@ class UserData(models.Model):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50)
     email = models.CharField(max_length=50)
-    photo = models.CharField()
+    photoid = models.IntegerField(null=True)
     
     class Meta:
         db_table = f'"{SCHEMA}"."user_data_view"'
@@ -123,11 +120,13 @@ class UserData(models.Model):
         managed = False
         
     def __str__(self):
-        return json.dumps({
+        string = {
             "username": self.username,
             "email": self.email,
-            "photo": utils.decode_file(self.photo)
-        })
+        }
+        if self.photoid:
+            string["photoid"] = self.photoid
+        return json.dumps(string)
 
     
     
@@ -139,7 +138,7 @@ class UserAlbums(models.Model):
     album_elements = models.IntegerField()
     creationdate = models.DateTimeField()
     lastupdate = models.DateTimeField()
-    cover = models.CharField(null=True)
+    cover = models.IntegerField(null=True)
     is_owner = models.BooleanField()
     permissions = models.CharField(max_length=15, null=True)
     code = models.CharField(max_length=8, null=True)
@@ -155,10 +154,9 @@ class UserAlbums(models.Model):
             "name": self.album_name,
             "elements": self.album_elements,
             "creationdate": self.creationdate.isoformat(),
-            "lastupdate": self.lastupdate.isoformat()
+            "lastupdate": self.lastupdate.isoformat(),
+            "cover": self.cover
         }
-        if (self.cover is not None):
-            string["cover"] = utils.decode_file(self.cover)
         return json.dumps(string)
 
     
@@ -176,7 +174,6 @@ class UserMedia(models.Model):
     location = models.CharField(max_length=50, null=True)
     label = models.CharField(max_length=50, null=True)
     detectedobjects = models.CharField(null=True, max_length=100)
-    file = models.CharField()
     
     class Meta:
         db_table = f'"{SCHEMA}"."user_media_view"'
@@ -197,7 +194,5 @@ class UserMedia(models.Model):
             "label": self.label,
             "detectedobjects": self.detectedobjects
         }
-        if (self.file is not None):
-            string["file"] = utils.decode_file(self.file)
         return json.dumps(string)
     

@@ -2,8 +2,8 @@
   import { getAuth } from "@ts/auth";
   import { Ref, inject, ref } from "vue";
   import { getAlbum, putAlbum } from "@ts/requests/album";
-  import { useRoute, useRouter } from "vue-router";
-  import { getDate, intlNumberDate, mediaBase64 } from "@ts/common";
+  import { useRoute } from "vue-router";
+  import { getDate, getURLFromBlob, intlNumberDate } from "@ts/common";
   import {
     getMediaIndexedDB,
     putMediaIndexedDB,
@@ -22,13 +22,6 @@
   } from "@ts/constants";
 
   const auth = getAuth();
-
-  if (!auth) {
-    const router = useRouter();
-    router.push({ name: "Auth" });
-    throw new Error("No login token");
-  }
-
   const props = defineProps<{ type: "default" | "album" }>();
   const type = props.type;
   const media: Ref<IMedia[] | undefined | null> = ref([]);
@@ -46,9 +39,6 @@
   const $t = useI18n().t;
   const mediaidsSt = useMediaidsStore();
   const db: Ref<IDBDatabase> | undefined = inject("db");
-  while (!db) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
 
   const route = useRoute();
   const albumid = Number(route.params.albumid);
@@ -60,7 +50,7 @@
   album.value.id = albumid;
   album.value.name = albumname;
 
-  const albumMeta = await getAlbum(auth, album.value);
+  const albumMeta = await getAlbum(auth!, album.value);
 
   if (!albumMeta || albumMeta.length !== 1 || !albumMeta[0].id) {
     throw new Error("No album metadata or more than one album found");
@@ -78,11 +68,16 @@
     if (!db || !db.value || !album || !album.value) {
       throw new Error("No indexedDB");
     }
-    media.value = await getMediaIndexedDB(db.value, album.value.id!, filter);
+    media.value = await getMediaIndexedDB(
+      db.value,
+      undefined,
+      album.value,
+      filter
+    );
     groupsByDate.value = groupMediaByDate(media.value as IMedia[]);
   };
 
-  // Groups media by date
+  // Gets media modification date and sorts it by date (newest first)
   const groupMediaByDate = (mediaArray: IMedia[]) => {
     const groups: { [key: number]: IMedia[] } = {};
 
@@ -147,7 +142,7 @@
     editAlbumNameField.value.error = false;
 
     album.value.name = editedAlbumName.value;
-    await putAlbum(auth, album.value);
+    await putAlbum(auth!, album.value);
     editAlbum.value = false;
   };
 
@@ -157,11 +152,12 @@
     }
     media.value = [];
     const mediaids: Number[] = [];
-    const data = await getMedia(auth, undefined, album.id, true);
+    const data = await getMedia(auth!, undefined, album, true);
+
     if (data) {
       // Check if the media in default album is already in the indexedDB
       // If not, add it to the indexedDB
-      let indexedMedia = await getMediaIndexedDB(db, album.id);
+      let indexedMedia = await getMediaIndexedDB(db, undefined, album);
       if (!indexedMedia) indexedMedia = [];
 
       // Check if the media in the server is already in the indexedDB
@@ -169,16 +165,14 @@
         // Store the media id
         mediaids.push(mediaItem.id as number);
         // Check if the media is not in the indexedDB
-        if (!indexedMedia.find((item: IMedia) => item.id === mediaItem.id)) {
+        if (
+          mediaItem.kind !== MediaKinds.PROFILE &&
+          !indexedMedia.find((item: IMedia) => item.id === mediaItem.id)
+        ) {
           // Get the media file
-          const mediaData = await getMedia(auth, mediaItem.id, album.id);
+          const mediaData = await getMedia(auth!, mediaItem, album);
 
           if (mediaData) {
-            mediaData[0].file = (await mediaBase64(
-              mediaData[0].file!,
-              mediaData[0].kind
-            )) as string;
-
             await putMediaIndexedDB(db, mediaData[0]);
           }
         }
@@ -186,13 +180,23 @@
 
       // Check if the media in the indexedDB is not in the server
       for (const mediaItem of indexedMedia) {
-        if (!data.find((item) => item.id === mediaItem.id)) {
+        if (
+          mediaItem.kind !== MediaKinds.PROFILE &&
+          !data.find(
+            (item) =>
+              item.id === mediaItem.id && mediaItem.kind !== MediaKinds.PROFILE
+          )
+        ) {
           // Delete the media
-          await deleteMediaIndexedDB(db, mediaItem.id!);
+          await deleteMediaIndexedDB(db, mediaItem);
         }
       }
 
-      media.value = await getMediaIndexedDB(db, album.id);
+      media.value = await getMediaIndexedDB(db, undefined, album);
+      // Exclude profile photo
+      media.value = media.value?.filter(
+        (mediaItem) => mediaItem.kind !== MediaKinds.PROFILE
+      );
 
       // Store the media ids in pinia
       mediaidsSt.setMediaids(mediaids);
@@ -216,7 +220,7 @@
     videoElement.pause();
   };
 
-  await refreshMedia(db.value, album.value);
+  await refreshMedia(db!.value, album.value);
 </script>
 
 <template>
@@ -262,7 +266,11 @@
               {{ $t("albums.detail.lastUpdate") + album.lastupdate }}
             </p>
             <span class="separator-point"></span>
-            <div v-if="!editAlbum" class="flex flex-row gap-4 items-center">
+            <div
+              v-if="!editAlbum"
+              class="flex flex-row gap-4 items-center"
+              @click="console.log(media)"
+            >
               <md-text-button @click="editAlbum = true">
                 <md-icon slot="icon">edit</md-icon>
                 <span>{{ $t("edit") }}</span>
@@ -322,12 +330,12 @@
               >
                 <img
                   v-if="m.kind === MediaKinds.IMAGE"
-                  :src="String(m.thumbnail)"
+                  :src="getURLFromBlob(m.thumbnail)"
                   alt="Media"
                 />
                 <video
                   v-else
-                  :src="String(m.file)"
+                  :src="getURLFromBlob(m.file)"
                   @mouseenter="playVideo"
                   @mouseleave="resetVideo"
                   muted
@@ -343,12 +351,12 @@
               >
                 <img
                   v-if="m.kind === MediaKinds.IMAGE"
-                  :src="String(m.thumbnail)"
+                  :src="getURLFromBlob(m.thumbnail)"
                   alt="Media"
                 />
                 <video
                   v-else
-                  :src="String(m.file)"
+                  :src="getURLFromBlob(m.file)"
                   @mouseenter="playVideo"
                   @mouseleave="resetVideo"
                   muted

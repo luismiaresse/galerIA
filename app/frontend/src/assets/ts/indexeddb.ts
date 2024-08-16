@@ -1,23 +1,25 @@
+import { Ref } from "vue";
 import { createThumbnail } from "./common";
-import { IMedia, IMediaProperties } from "./definitions";
+import { IAlbum, IMedia, IMediaProperties } from "./definitions";
 import { en, es } from "@js/yolo/utils/dictionary.json";
 
 export const getMediaPropertiesIndexedDB = (
   db: IDBDatabase,
-  mediaid: number
+  media: IMedia
 ): Promise<IMediaProperties> => {
   return new Promise((resolve, reject) => {
     if (!db) {
       console.error("No database");
       reject("No database");
     }
-    if (!mediaid) {
+    if (!media || !media.id) {
       console.error("No mediaid");
       reject("No mediaid");
     }
-    db.transaction("media").objectStore("media").get(mediaid).onsuccess = (
-      event: any
-    ) => {
+    db
+      .transaction("media")
+      .objectStore("media")
+      .get(Number(media.id)).onsuccess = (event: any) => {
       if (event.target && event.target.result) {
         resolve(event.target.result);
       }
@@ -28,8 +30,9 @@ export const getMediaPropertiesIndexedDB = (
 
 export const getMediaIndexedDB = (
   db: IDBDatabase,
-  albumid: number,
-  // Filter can be a date (YYYY, YYYY-MM, YYYY-MM-DD), a file name
+  media?: IMedia,
+  album?: IAlbum,
+  // Filter can be a date (YYYY, YYYY-MM, YYYY-MM-DD), a
   // or an object from COCO dataset label
   filter?: string
 ): Promise<IMedia[]> | null => {
@@ -38,8 +41,8 @@ export const getMediaIndexedDB = (
     console.error("No database");
     return null;
   }
-  if (!albumid) {
-    console.error("No album ID");
+  if ((!media || !media.id) && (!album || !album.id)) {
+    console.error("No album or media ID");
     return null;
   }
 
@@ -67,75 +70,93 @@ export const getMediaIndexedDB = (
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(["media"], "readonly");
     const objectStore = transaction.objectStore("media");
-    const index = objectStore.index("albumid");
-    const request = index.getAll(albumid);
-    request.onsuccess = function () {
-      if (filter) {
-        let filtered;
+    if (album && album.id && (!media || !media.id)) {
+      const index = objectStore.index("albumid");
+      const request = index.getAll(album.id);
+      request.onsuccess = function () {
+        if (filter) {
+          let filtered;
 
-        // Check if filter is a date with regex
-        filtered = dateFilter(filter, request.result);
-        if (filtered) {
-          mediaArray.push(...filtered);
-          resolve(mediaArray);
-          return;
-        }
+          // Check if filter is a date with regex
+          filtered = dateFilter(filter, request.result);
+          if (filtered) {
+            mediaArray.push(...filtered);
+            resolve(mediaArray);
+            return;
+          }
 
-        // Check if filter is a COCO dataset label
-        filtered = request.result.filter((media: IMedia) => {
-          if (!media.detectedobjects) return false;
-          if (media.detectedobjects.includes(filter)) return true;
-          // Check if filter is known in the dictionary
-          else {
-            let dictionary;
-            if (navigator.language.startsWith("es")) {
-              dictionary = JSON.parse(JSON.stringify(es));
-            } else {
-              dictionary = JSON.parse(JSON.stringify(en));
-            }
+          // Check if filter is a COCO dataset label
+          filtered = request.result.filter((media: IMedia) => {
+            if (!media.detectedobjects) return false;
+            if (media.detectedobjects.includes(filter)) return true;
+            // Check if filter is known in the dictionary
+            else {
+              let dictionary;
+              if (navigator.language.startsWith("es")) {
+                dictionary = JSON.parse(JSON.stringify(es));
+              } else {
+                dictionary = JSON.parse(JSON.stringify(en));
+              }
 
-            for (const label in dictionary) {
-              if (
-                dictionary[label].includes(filter.toLowerCase()) &&
-                media.detectedobjects.includes(label)
-              ) {
-                return true;
+              for (const label in dictionary) {
+                if (
+                  dictionary[label].includes(filter.toLowerCase()) &&
+                  media.detectedobjects.includes(label)
+                ) {
+                  return true;
+                }
               }
             }
+            return false;
+          });
+          if (filtered.length > 0) {
+            mediaArray.push(...filtered);
+            resolve(mediaArray);
+            return;
           }
-          return false;
-        });
-        if (filtered.length > 0) {
+
+          // Check if filter is a location
+          filtered = request.result.filter((media: IMedia) => {
+            if (media.location) {
+              return media.location
+                .toLowerCase()
+                .includes(filter.toLowerCase());
+            }
+          });
+          // Allow empty results
           mediaArray.push(...filtered);
           resolve(mediaArray);
           return;
         }
 
-        // Check if filter is a location
-        filtered = request.result.filter((media: IMedia) => {
-          if (media.location) {
-            return media.location.toLowerCase().includes(filter.toLowerCase());
-          }
+        mediaArray.push(...request.result);
+        mediaArray.sort((a: any, b: any) => {
+          return (
+            new Date(b.modificationdate).getTime() -
+            new Date(a.modificationdate).getTime()
+          );
         });
-        // Allow empty results
-        mediaArray.push(...filtered);
         resolve(mediaArray);
-        return;
-      }
+      };
+      request.onerror = function () {
+        reject("Error getting media from IndexedDB");
+      };
+    } else if (media && media.id) {
+      const request = objectStore.get(media.id);
 
-      mediaArray.push(...request.result);
-      mediaArray.sort((a: any, b: any) => {
-        return (
-          new Date(b.modificationdate).getTime() -
-          new Date(a.modificationdate).getTime()
-        );
-      });
-      resolve(mediaArray);
-    };
-    request.onerror = function () {
-      console.error("Error getting media from IndexedDB");
-      reject(null);
-    };
+      request.onsuccess = function () {
+        if (request.result) {
+          mediaArray.push(request.result);
+          resolve(mediaArray);
+        } else {
+          reject("No media found in IndexedDB");
+        }
+      };
+
+      request.onerror = function (e: any) {
+        reject("Error getting media from IndexedDB: " + e.target.error);
+      };
+    }
   });
 };
 
@@ -148,13 +169,11 @@ export const putMediaIndexedDB = async (db: IDBDatabase, media: IMedia) => {
     console.error("No media");
     return null;
   }
-  const m = await createThumbnail(media);
+  await createThumbnail(media);
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(["media"], "readwrite");
     const objectStore = transaction.objectStore("media");
     console.log("Adding media to IndexedDB");
-
-    const media = JSON.parse(JSON.stringify(m));
 
     const request = objectStore.add(media);
 
@@ -169,12 +188,12 @@ export const putMediaIndexedDB = async (db: IDBDatabase, media: IMedia) => {
   });
 };
 
-export const deleteMediaIndexedDB = (db: IDBDatabase, mediaid: number) => {
+export const deleteMediaIndexedDB = (db: IDBDatabase, media: IMedia) => {
   if (!db) {
     console.error("No database");
     return null;
   }
-  if (!mediaid) {
+  if (!media || !media.id) {
     console.error("No media ID");
     return null;
   }
@@ -182,7 +201,7 @@ export const deleteMediaIndexedDB = (db: IDBDatabase, mediaid: number) => {
     const req = db
       .transaction(["media"], "readwrite")
       .objectStore("media")
-      .delete(mediaid);
+      .delete(Number(media.id));
 
     // Wait for the database transaction to complete
     req.onsuccess = function () {
@@ -190,9 +209,14 @@ export const deleteMediaIndexedDB = (db: IDBDatabase, mediaid: number) => {
       resolve(true);
     };
 
-    req.onerror = function () {
-      console.error("Error deleting media from IndexedDB");
-      reject(false);
+    req.onerror = function (e: any) {
+      reject("Error deleting media from IndexedDB: " + e.target.error);
     };
   });
+};
+
+export const waitForIndexedDB = async (db: Ref<IDBDatabase>) => {
+  while (!db.value) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
 };

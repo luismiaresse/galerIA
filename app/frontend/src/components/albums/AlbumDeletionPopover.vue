@@ -3,13 +3,6 @@
   import { useRouter } from "vue-router";
   import { deleteAlbum } from "@ts/requests/album";
   import { IAlbum } from "@ts/definitions";
-  const auth = getAuth();
-
-  if (!auth) {
-    console.error("No login token");
-    const router = useRouter();
-    router.push({ name: "Auth" });
-  }
 
   const props = defineProps<{
     albumid: number;

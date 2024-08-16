@@ -7,13 +7,6 @@
   import { IAlbum } from "@ts/definitions";
   import { DEFAULT_ALBUM } from "@ts/constants";
   const auth = getAuth();
-
-  if (!auth) {
-    console.error("No login token");
-    const router = useRouter();
-    router.push({ name: "Auth" });
-  }
-
   const name = ref("");
   const nameField = ref();
   const router = useRouter();
@@ -31,7 +24,7 @@
       name: name.value
     };
 
-    album = (await putAlbum(auth as string, album)) as IAlbum;
+    album = (await putAlbum(auth!, album)) as IAlbum;
     if (!album.id) {
       console.error("Error creating album");
       nameField.value.error = true;

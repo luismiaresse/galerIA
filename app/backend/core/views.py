@@ -1,6 +1,8 @@
 import datetime
+import os
 import dateutil
-from django.http import HttpResponse, HttpRequest
+from django.conf import settings
+from django.http import FileResponse, HttpResponse, HttpRequest
 from django.template import loader
 from django.core.files import File
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse
@@ -111,6 +113,7 @@ class LoginAPI(KnoxLoginView):
         responses={
             201: OpenApiResponse(description="User registered successfully."),
             400: OpenApiResponse(description="Bad request if required data is missing."),
+            409: OpenApiResponse(description="User already exists."),
         }
     )
 )
@@ -139,26 +142,26 @@ class RegisterAPI(generics.CreateAPIView):
         try:
             created = self.create(request)
             if (created):
-                # Create default album and profile photo for new user
+                # Create user folder and default album for new user
+                self.create_user_folder(request)
                 self.create_default_album(request)
-                self.create_profile_photo(request)
             else:
                 return HttpResponse(status=status.HTTP_409_CONFLICT)
             return created
         except:
             return HttpResponse(status=status.HTTP_409_CONFLICT)
         
+    def create_user_folder(self, request):
+        user = User.objects.get(username=request.data['username'])
+        if not os.path.exists(f"{settings.MEDIA_ROOT}/{user.username}"):
+            os.mkdir(f"{settings.MEDIA_ROOT}/{user.username}")
+        
     # Create album for new users
     def create_default_album(self, request):
         user = User.objects.get(username=request.data['username'])
         defaultalbum = Album.objects.create(name=DEFAULT_ALBUM)
-        defaultalbum.user.add(user)
-        
-    def create_profile_photo(self, request):
-        user = User.objects.get(username=request.data['username'])
-        profile = Media.objects.create(filename="profile.png", file=None, kind=MediaKinds.PROFILE.value, modificationdate=datetime.datetime.now().astimezone())
-        album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
-        profile.album.add(album)
+        AlbumUser.objects.create(album=defaultalbum, user=user, is_owner=True)
+
     
 
 
@@ -513,7 +516,6 @@ class UserAlbumsAPI(KnoxAPIView):
                 albums = UserAlbums.objects.filter(id=user.id, is_owner=True, permissions__isnull=False)
             else:
                 albums = UserAlbums.objects.filter(id=user.id, is_owner=True)
-            albums = albums.exclude(album_name=DEFAULT_ALBUM)
             skipCover = request.GET.get('skipcover')
             albumid = request.GET.get('id')
             albumname = request.GET.get('name')
@@ -532,15 +534,12 @@ class UserAlbumsAPI(KnoxAPIView):
             albums_json = "["
             if len(albums) != 0:
                 for album in albums:
-                    # Skip default album
-                    if album.album_name == DEFAULT_ALBUM:
-                        continue
                     if skipCover:
                         album.cover = None
                     albums_json += str(album) + ","   
                 # Remove last comma
                 albums_json = albums_json[:-1]
-            albums_json += "]"        
+            albums_json += "]"     
             return HttpResponse(albums_json, content_type='application/json')
         except UserAlbums.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
@@ -615,7 +614,9 @@ class MediaAPI(KnoxAPIView):
     def put(self, request):
         kind = request.data['kind'] if 'kind' in request.data else None
         file = request.FILES.get('file') if 'file' in request.FILES else None
-        filestring = request.data['file'] if 'file' in request.data else None
+        if file and file.name is not None and file.name == "blob": filename = "Generated image.png" 
+        elif file: filename = file.name
+        else: filename = "Uploaded image.png"
         mediaid = request.data['id'] if 'id' in request.data else None
         albumid = request.data['albumid'] if 'albumid' in request.data else None
         label = request.data['label'] if 'label' in request.data else None
@@ -628,20 +629,7 @@ class MediaAPI(KnoxAPIView):
         
         try:
             user = User.objects.get(id=request.user.id)
-            filename = 'uploadedfile'
-            if file:
-                file = File(file)
-                filename = file.name
-                file = utils.encode_file(file, kind)
-            elif filestring:
-                file = filestring
-                filename = request.data['filename'] if 'filename' in request.data else filename
-                file = utils.encode_file(file, kind)
-                
-                if not file:
-                    return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-                
             if coordinates:
                 # Fetch location from coordinates
                 lat, lon = coordinates.split(',')
@@ -652,14 +640,15 @@ class MediaAPI(KnoxAPIView):
                 modificationdate = dateutil.parser.isoparse(modification)
             else:
                 modificationdate = datetime.datetime.now().astimezone()
-            
+                            
             # Copy media to another album
             if mediaid and not file:
                 media = Media.objects.get(id=mediaid)
-                mediacopy = Media.objects.create(filename=media.filename, file=media.file, kind=media.kind, label=media.label, coordinates=media.coordinates, location=media.location, modificationdate=media.modificationdate, detectedobjects=media.detectedobjects)
                 album = Album.objects.get(id=albumid, user=user)
+                mediacopy = Media.objects.create(filename=media.filename, kind=media.kind, label=media.label, coordinates=media.coordinates, location=media.location, modificationdate=media.modificationdate, detectedobjects=media.detectedobjects)
                 mediacopy.album.add(album)
-                mediacopy.file = None
+                utils.create_update_media_file(user.username, mediacopy.id, media.id)
+                mediacopy.save()
                 return HttpResponse(str(mediacopy), content_type='application/json', status=status.HTTP_200_OK)
             # Update media
             elif mediaid and file:
@@ -670,10 +659,9 @@ class MediaAPI(KnoxAPIView):
                     media.label = label
                 if detectedobjects:
                     media.detectedobjects = detectedobjects
-                media.file = file
                 media.modificationdate = datetime.datetime.now().astimezone()
+                utils.create_update_media_file(user.username, media.id, file)
                 media.save()
-                media.file = None
                 return HttpResponse(str(media), content_type='application/json', status=status.HTTP_200_OK)
             
             if not file:
@@ -688,14 +676,15 @@ class MediaAPI(KnoxAPIView):
             if kind == MediaKinds.PROFILE.value:
                 # Get current profile photo
                 current = album.media_set.filter(kind=MediaKinds.PROFILE.value)
-                if current:
+                if current and current.count() == 1:
+                    utils.delete_media_file(user.username, current[0].id)
                     current.delete()
-                media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.PROFILE.value, modificationdate=modificationdate)
+                media = Media.objects.create(filename=filename, kind=MediaKinds.PROFILE.value, modificationdate=modificationdate)
                 # Add profile picture to user profile album
                 media.album.add(album)
             # Image upload
             elif kind == MediaKinds.IMAGE.value:
-                media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.IMAGE.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+                media = Media.objects.create(filename=filename, kind=MediaKinds.IMAGE.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
                 # Check if there are any images in the album
                 other = album.media_set.filter(kind=MediaKinds.IMAGE.value)
                 # If no images, set this image as album cover
@@ -705,20 +694,24 @@ class MediaAPI(KnoxAPIView):
                 MediaAlbum.objects.create(media=media, album=album, is_cover=is_cover)
             # Video upload
             elif kind == MediaKinds.VIDEO.value:
-                media = Media.objects.create(filename=filename, file=file, kind=MediaKinds.VIDEO.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
+                media = Media.objects.create(filename=filename, kind=MediaKinds.VIDEO.value, label=label, coordinates=coordinates, location=location, modificationdate=modificationdate, detectedobjects=detectedobjects)
                 # Add video to user default album
                 media.album.add(album)
+                
+            # Save media file
+            utils.create_update_media_file(user.username, media.id, file)
                 
             # Update album last update date
             album.save()
                 
-            # Return new media info without binary data
-            media.file = None
             return HttpResponse(str(media), content_type='application/json', status=status.HTTP_201_CREATED)
         except Album.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         except Media.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     # Delete media from user album
     def delete(self, request):
@@ -735,11 +728,12 @@ class MediaAPI(KnoxAPIView):
                 album = Album.objects.get(user=user, name=DEFAULT_ALBUM)
             media = Media.objects.get(id=mediaid, album=album)
             
-            # Update album last update date
-            album.save()
-            
-            if media:
+            if media and album:
+                # Delete media file
+                utils.delete_media_file(user.username, media.id)
                 media.delete()
+                # Update album last update date
+                album.save()
                 return HttpResponse(status=status.HTTP_204_NO_CONTENT)
             return HttpResponse(status=status.HTTP_403_FORBIDDEN)
         except Media.DoesNotExist:
@@ -771,7 +765,6 @@ class UserMediaAPI(KnoxAPIView):
         try:
             user = User.objects.get(id=request.user.id)
             mediaid = request.GET.get('mediaid')
-            skipfiles = request.GET.get('skipfiles')
             albumid = request.GET.get('albumid')
             usermedia = UserMedia.objects.filter(id=user.id)
             
@@ -788,16 +781,10 @@ class UserMediaAPI(KnoxAPIView):
             # If only one media is requested
             if mediaid and albumid:
                 usermedia = usermedia.get(media_id=mediaid)
-                if skipfiles:
-                    usermedia.file = None
-                
                 return HttpResponse("[" + str(usermedia) + "]", content_type='application/json')
             # If no album ID is provided, get media directly from default album
             elif mediaid:
                 usermedia = UserMedia.objects.get(id=user.id, media_id=mediaid)
-                if skipfiles:
-                    usermedia.file = None
-                
                 return HttpResponse("[" + str(usermedia) + "]", content_type='application/json')
             
             # Get media from album
@@ -819,8 +806,6 @@ class UserMediaAPI(KnoxAPIView):
             media_json = "["
             if len(media) != 0:
                 for m in media:
-                    if skipfiles:
-                        m.file = None
                     media_json += str(m) + ","
                     # media_json["albumid"] = album.id
                 # Remove last comma
@@ -829,3 +814,38 @@ class UserMediaAPI(KnoxAPIView):
             return HttpResponse(media_json, content_type='application/json')
         except UserMedia.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Get media file",
+        description="Fetches media file for the requesting user.",
+        parameters=[
+            OpenApiParameter(name='mediaid', description='Media ID', required=True, type=int),
+            OpenApiParameter(name='kind', description=f"Media kind. Can be '{MediaKinds.IMAGE}', '{MediaKinds.PROFILE}' or '{MediaKinds.VIDEO}'", required=True, type=str),
+        ],
+        responses={
+            200: OpenApiResponse(response=File, description="Media file retrieved successfully."),
+            400: OpenApiResponse(description="Bad request if required data is missing."),
+            401: OpenApiResponse(description="Unauthorized if the user is not authenticated."),
+            404: OpenApiResponse(description="Media not found."),
+        }
+    )
+)
+class FileAPI(KnoxAPIView):
+    def get(self, request):
+        mediaid = request.GET.get('mediaid')
+        kind = request.GET.get('kind')
+        if not mediaid:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            if not kind:
+                # Get kind from DB
+                media = Media.objects.get(id=mediaid)
+                kind = media.kind
+            file = utils.get_media_file(request.user.username, mediaid)
+            return FileResponse(file, content_type='video/*' if kind == MediaKinds.VIDEO.value else 'image/*')
+        except:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        

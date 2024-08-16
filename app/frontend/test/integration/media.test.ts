@@ -44,11 +44,9 @@ describe("Media subsystem", () => {
         file: EXAMPLE_IMAGE
       };
 
-      const res = await putMedia(
-        TESTUSER_TOKEN_REF.value,
-        media,
-        TESTUSER_ALBUM_ID
-      );
+      const res = await putMedia(TESTUSER_TOKEN_REF.value, media, {
+        id: TESTUSER_ALBUM_ID
+      });
       expect(res).not.toBeNull();
       expect(res!.id).toBeDefined();
       expect(res!.kind).toBe(MediaKinds.IMAGE);
@@ -59,11 +57,9 @@ describe("Media subsystem", () => {
         file: EXAMPLE_VIDEO
       };
 
-      const res = await putMedia(
-        TESTUSER_TOKEN_REF.value,
-        media,
-        TESTUSER_ALBUM_ID
-      );
+      const res = await putMedia(TESTUSER_TOKEN_REF.value, media, {
+        id: TESTUSER_ALBUM_ID
+      });
       expect(res).not.toBeNull();
       expect(res!.id).toBeDefined();
       expect(res!.kind).toBe(MediaKinds.VIDEO);
@@ -73,11 +69,9 @@ describe("Media subsystem", () => {
         file: EXAMPLE_IMAGE
       };
 
-      const res = await putMedia(
-        OTHERUSER_TOKEN_REF.value,
-        media,
-        OTHERUSER_ALBUM_ID
-      );
+      const res = await putMedia(OTHERUSER_TOKEN_REF.value, media, {
+        id: OTHERUSER_ALBUM_ID
+      });
       expect(res).not.toBeNull();
       expect(res!.id).toBeDefined();
       expect(res!.kind).toBe(MediaKinds.IMAGE);

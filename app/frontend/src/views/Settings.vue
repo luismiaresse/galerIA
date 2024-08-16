@@ -1,26 +1,26 @@
 <script setup lang="ts">
   import AccountDeleteConfirm from "@/components/settings/AccountDeleteConfirm.vue";
   import { getAuth } from "@ts/auth";
-  import { checkPassword, createThumbnail, triggerInput } from "@ts/common";
-  import { LOCALSTORAGE_USERDATA, MediaKinds } from "@ts/constants";
+  import {
+    checkPassword,
+    createThumbnail,
+    getURLFromBlob,
+    triggerInput
+  } from "@ts/common";
+  import {
+    LOCALSTORAGE_USERDATA,
+    MediaKinds,
+    USER_PROFILE_ANONYMOUS
+  } from "@ts/constants";
   import { IMedia, IUserData } from "@ts/definitions";
   import { putMedia } from "@ts/requests/media";
-  import { changePassword, getAccountData } from "@ts/requests/user";
-  import { Ref, ref } from "vue";
+  import { changePassword } from "@ts/requests/user";
+  import { inject, Ref, ref, watchEffect } from "vue";
   import { useI18n } from "vue-i18n";
-  import { useRouter } from "vue-router";
 
   // Change title
   const $t = useI18n().t;
   document.title = $t("settings.title") + " - galerIA";
-
-  const auth = getAuth();
-  if (!auth) {
-    console.error("No login token");
-    const router = useRouter();
-    router.push({ name: "Auth" });
-    throw new Error("No login token");
-  }
 
   const passwordOldField = ref(),
     passwordNew = ref(""),
@@ -30,22 +30,20 @@
     passwordChanged = ref(false);
 
   const user: Ref<IUserData> = ref({
-    id: undefined,
     username: "",
     email: "",
-    password: "",
-    photo: undefined,
-    expiry: undefined
+    password: ""
   });
 
-  const router = useRouter();
+  const userPhoto = ref(USER_PROFILE_ANONYMOUS);
+  const userData: Ref<IUserData | null> | undefined = inject("userData");
+  // Looks for changes in userData and updates userPhoto
+  watchEffect(() => {
+    if (userData && userData.value) {
+      if (userData.value.photo)
+        userPhoto.value = getURLFromBlob(userData.value.photo);
 
-  getAccountData(auth).then((data) => {
-    if (data) {
-      user.value = data;
-    } else {
-      console.error("No user data");
-      router.push({ name: "Auth" });
+      user.value = userData.value;
     }
   });
 
@@ -65,17 +63,16 @@
       file: file
     };
 
-    // Make thumbnail and make it as the new profile photo
+    // Make thumbnail
     await createThumbnail(media);
-    media.file = media.thumbnail;
 
     // Upload the new profile photo
     await putMedia(auth, media);
 
     // Remove old user data and replace it with the new one
     localStorage.removeItem(LOCALSTORAGE_USERDATA);
-    $("#settings-profile-photo").attr("src", media.file as string);
-    $("#profile-photo").attr("src", media.file as string);
+    $("#settings-profile-photo").attr("src", URL.createObjectURL(media.file!));
+    $("#profile-photo").attr("src", URL.createObjectURL(media.file!));
   };
 
   const showDeletePopover = () => {
@@ -159,18 +156,10 @@
         <div id="settings-profile-content" class="flex flex-row gap-4 h-full">
           <div class="flex flex-col justify-center items-center gap-4">
             <img
-              v-if="user.photo"
               id="settings-profile-photo"
-              :src="user.photo"
+              :src="userPhoto"
               alt="profile"
               class="rounded-full min-w-32 max-w-44 aspect-square"
-            />
-            <img
-              v-else
-              id="settings-profile-photo"
-              src="@img/anonymous.webp"
-              alt="profile"
-              class="rounded-full w-32 aspect-square"
             />
             <md-text-button @click="triggerInput('#new-photo-input')">
               <p>{{ $t("change") }}</p>

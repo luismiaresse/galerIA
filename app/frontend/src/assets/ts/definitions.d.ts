@@ -13,8 +13,9 @@ export interface IMedia {
   location?: string;
   // Objects format: each separated by ;
   detectedobjects?: string;
-  file?: File | Blob | string;
-  thumbnail?: string;
+  file?: File | Blob | null;
+  url?: string;
+  thumbnail?: File | Blob | null;
 }
 
 // Extend IMedia with the new properties
@@ -45,13 +46,14 @@ export interface IUser {
 }
 
 export interface IUserData extends IUser {
-  photo?: string;
+  photoid?: number;
+  photo?: File | Blob | null;
   expiry?: number;
 }
 
 export interface IUserAlbum extends IAlbum {
   elements?: number;
-  cover?: string;
+  cover?: number;
   shared?: boolean;
   sharedOwned?: boolean;
 }

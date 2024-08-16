@@ -1,15 +1,14 @@
 <script setup lang="ts">
-  import { useUserStore } from "@js/stores/user";
-  import { getAccountData } from "@ts/requests/user";
   import { login } from "@ts/requests/auth";
+  import { inject, Ref, ref } from "vue";
+  import { IUser, IUserData } from "@ts/definitions";
   import { useRouter } from "vue-router";
-  import { ref } from "vue";
-  import { IUser } from "@ts/definitions";
   import { AUTH_TOKEN_PREFIX } from "@ts/constants";
-
-  const userStore = useUserStore();
+  import { getUserData } from "@ts/requests/user";
   const nameOrEmail = ref("");
   const password = ref("");
+  const db: Ref<IDBDatabase> | undefined = inject("db");
+  const userData: Ref<IUserData | null> | undefined = inject("userData");
 
   const router = useRouter();
 
@@ -36,18 +35,15 @@
       error.removeClass("hidden");
       return;
     }
-
     error.addClass("hidden");
 
     // Set token prefix
+    if (userData) userData.value = await getUserData(auth.token, db!.value);
+
     auth.token = AUTH_TOKEN_PREFIX + auth.token;
 
-    // Set user in store
-    const userData = await getAccountData(auth.token);
-    userStore.setUser(userData);
-
-    // Redirect to home
-    router.push("/");
+    // Push to home
+    router.push({ name: "Photos" });
   };
 </script>
 

@@ -1,11 +1,7 @@
 <script setup lang="ts">
   import FileProgress from "./FileProgress.vue";
   import { putMedia } from "@ts/requests/media";
-  import {
-    detectionsArrayToString,
-    triggerInput,
-    mediaBase64
-  } from "@ts/common";
+  import { detectionsArrayToString, triggerInput } from "@ts/common";
   import { putMediaIndexedDB } from "@ts/indexeddb";
   import { getAuth } from "@ts/auth";
   import { useRoute } from "vue-router";
@@ -18,15 +14,10 @@
 
   const route = useRoute();
   const auth = getAuth();
-
-  if (!auth) {
-    throw new Error("No login token");
-  }
-
   let albumid = Number(route.params.albumid);
   if (!albumid) {
     let albumopts;
-    albumopts = await getAlbum(auth, { name: DEFAULT_ALBUM });
+    albumopts = await getAlbum(auth!, { name: DEFAULT_ALBUM });
     if (albumopts && albumopts.length === 1) albumid = albumopts[0].id!;
     else throw new Error("No albumid");
   }
@@ -108,15 +99,16 @@
           coordinates: coordinates
         };
 
-        media = (await putMedia(auth, mediaUp, albumid)) as IMedia;
+        media = (await putMedia(auth, mediaUp, {id: albumid})) as IMedia;
         if (!media.id) {
           console.error("Error uploading media");
           // TODO Show error
           return;
         }
 
-        media.file = (await mediaBase64(file, media.kind)) as string;
         media.albumid = albumid;
+        media.file = mediaUp.file;
+
         // Add media to the indexedDB
         await putMediaIndexedDB(db.value, media);
         // Update current progress
@@ -126,6 +118,7 @@
       // TODO Show upload error
       console.error("Error uploading photos: " + error);
     }
+
     // 4. Reset upload state and update media list
     uploadCancelled.value = false;
     window.onbeforeunload = null;
@@ -169,15 +162,15 @@
           kind: MediaKinds.VIDEO
         };
 
-        media = (await putMedia(auth, mediaUp, albumid)) as IMedia;
+        media = (await putMedia(auth, mediaUp, {id: albumid})) as IMedia;
         if (!media.id) {
           console.error("Error uploading media");
           // TODO Show error
           return;
         }
 
-        media.file = (await mediaBase64(file, media.kind)) as string;
         media.albumid = albumid;
+        media.file = mediaUp.file;
 
         // Add media to the indexedDB
         await putMediaIndexedDB(db.value, media);
@@ -201,7 +194,7 @@
 <template>
   <div
     id="upload-bottom"
-    class="dialog p-6 flex flex-row justify-center gap-6 bottom-0 fixed border-b-0"
+    class="dialog-translucent p-6 flex flex-row justify-center gap-6 bottom-0 fixed border-b-0"
   >
     <md-filled-button
       class="upload-button"
@@ -260,7 +253,6 @@
     min-width: 100%;
     left: 0;
     right: 0;
-    background: var(--fondo-oscuro);
     border-radius: 30px 30px 0 0;
 
     .upload-button {

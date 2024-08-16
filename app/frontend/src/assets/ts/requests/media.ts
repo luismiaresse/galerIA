@@ -1,32 +1,32 @@
-import { mediaBase64 } from "@ts/common";
 import { MEDIA_API, MediaKinds, USER_MEDIA_API } from "@ts/constants";
-import { IMedia, IUserMedia } from "@ts/definitions";
+import { IAlbum, IMedia, IUserMedia } from "@ts/definitions";
+import { getFile } from "./file";
 
 export const getMedia = async (
   auth: string,
-  mediaid?: number,
-  albumid?: number,
+  media?: IMedia,
+  album?: IAlbum,
   skipfiles: boolean = false
 ): Promise<IMedia[] | null> => {
   if (!auth) {
     console.error("No login token");
     return null;
   }
+  if (!media) {
+    media = {};
+  }
+  if (!album) {
+    album = {};
+  }
   try {
     // Create the request URL
     let requestUrl = USER_MEDIA_API;
-    if (albumid && mediaid) {
-      requestUrl += "?albumid=" + albumid + "&mediaid=" + mediaid;
-    } else if (albumid && !mediaid) {
-      requestUrl += "?albumid=" + albumid;
-    } else if (!albumid && mediaid) {
-      requestUrl += "?mediaid=" + mediaid;
-    }
-
-    if (skipfiles && !mediaid && !albumid) {
-      requestUrl += "?skipfiles=true";
-    } else if (skipfiles) {
-      requestUrl += "&skipfiles=true";
+    if (album.id && media.id) {
+      requestUrl += "?albumid=" + album.id + "&mediaid=" + media.id;
+    } else if (album.id && !media.id) {
+      requestUrl += "?albumid=" + album.id;
+    } else if (!album.id && media.id) {
+      requestUrl += "?mediaid=" + media.id;
     }
 
     // Fetch the data
@@ -48,13 +48,16 @@ export const getMedia = async (
       console.error("No media found");
       return null;
     }
+    if (media.kind === MediaKinds.PROFILE) {
+      if (!skipfiles) albumMedia[0].file = await getFile(auth, albumMedia[0]);
+      return albumMedia;
+    }
 
     // Process the media
     for (const m of albumMedia) {
       // Exclude profile images
       if (m.kind === MediaKinds.PROFILE) continue;
-      // Add base64 header to images
-      m.file = (await mediaBase64(m.file!, m.kind)) as string;
+      if (!skipfiles) m.file = await getFile(auth, m);
     }
     return albumMedia;
   } catch (error) {
@@ -63,11 +66,7 @@ export const getMedia = async (
   }
 };
 
-export const putMedia = async (
-  auth: string,
-  media: IMedia,
-  albumid?: number
-) => {
+export const putMedia = async (auth: string, media: IMedia, album?: IAlbum) => {
   if (!auth) {
     console.error("No login token");
     return null;
@@ -96,7 +95,7 @@ export const putMedia = async (
     if (media.label) formData.append("label", media.label);
     if (media.coordinates) formData.append("coordinates", media.coordinates);
     else if (media.location) formData.append("location", media.location);
-    if (albumid) formData.append("albumid", albumid.toString());
+    if (album && album.id) formData.append("albumid", String(album.id));
 
     const response = await fetch(MEDIA_API, {
       method: "PUT",
@@ -109,7 +108,6 @@ export const putMedia = async (
     if (response.status === 200 || response.status === 201) {
       console.log("Media uploaded or updated");
       const media: IMedia = await response.json();
-
       return media;
     }
     return null;
@@ -119,20 +117,20 @@ export const putMedia = async (
   }
 };
 
-export async function deleteMedia(
-  auth: string,
-  mediaid: number,
-  albumid?: number
-) {
+export async function deleteMedia(auth: string, media: IMedia, album?: IAlbum) {
   if (!auth) {
     console.error("No login token");
+    return;
+  }
+  if (!media || !media.id) {
+    console.error("No media id");
     return;
   }
   try {
     const formData = new FormData();
     // If no albumid, deletes from default album
-    formData.append("id", mediaid.toString());
-    if (albumid) formData.append("albumid", albumid.toString());
+    formData.append("id", String(media.id));
+    if (album && album.id) formData.append("albumid", String(album.id));
 
     const response = await fetch(MEDIA_API, {
       method: "DELETE",

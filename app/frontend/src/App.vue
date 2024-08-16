@@ -1,34 +1,16 @@
 <script setup lang="ts">
   import { provide, ref, Suspense } from "vue";
-  import AccountPopover from "@/components/header/AccountPopover.vue";
   import Header from "@/components/header/Header.vue";
-  import { useUserStore } from "@js/stores/user";
-  import { getAccountData } from "@ts/requests/user";
   import { getAuth, resetAuth } from "@ts/auth";
   import { checkAuthTokenHealth } from "@ts/requests/auth";
   import { RouterView } from "vue-router";
   import { useI18n } from "vue-i18n";
+  import { getUserData } from "@ts/requests/user";
+  import { waitForIndexedDB } from "@ts/indexeddb";
 
   // Set theme (default: dark)
   const theme = ref("dark");
   $("#app").addClass(theme.value);
-
-  const userSt = useUserStore();
-
-  // Get user data and store it
-  const auth = getAuth();
-  checkAuthTokenHealth(auth).then((check) => {
-    if (!check) {
-      console.error("Auth is invalid");
-      resetAuth();
-    }
-  });
-
-  getAccountData(auth!).then((data) => {
-    if (data) {
-      userSt.setUser(data);
-    }
-  });
 
   // Set language
   const userLang = window.navigator.language;
@@ -56,27 +38,43 @@
     objectStore.createIndex("albumid", "albumid", { unique: false });
   };
 
+  const userData = ref();
+
+  waitForIndexedDB(db).then(() => {
+    const auth = getAuth();
+    checkAuthTokenHealth(auth).then((check) => {
+      if (!check) {
+        resetAuth();
+      } else {
+        getUserData(auth, db.value).then((user) => {
+          userData.value = user;
+        });
+      }
+    });
+  });
   provide("db", db);
+  provide("userData", userData);
 </script>
 
 <template>
   <div id="app-container" class="h-full">
-    <Header />
-    <AccountPopover id="account-popover" />
     <!-- Suspense needed for async components -->
     <Suspense>
-      <RouterView v-slot="{ Component, route }">
-        <Transition name="page-opacity" mode="out-in">
-          <div id="content" :key="String(route.name)">
-            <component :is="Component"></component>
-          </div>
-        </Transition>
-      </RouterView>
+      <div>
+        <Header />
+        <RouterView v-slot="{ Component, route }">
+          <Transition name="page-opacity" mode="out-in">
+            <div id="content" :key="String(route.name)">
+              <component :is="Component"></component>
+            </div>
+          </Transition>
+        </RouterView>
+      </div>
     </Suspense>
   </div>
 </template>
 
-<style>
+<style lang="scss">
   #app {
     overflow-x: hidden;
     overflow-y: auto;
@@ -85,34 +83,34 @@
     overflow-y: auto;
     scrollbar-color: var(--fondo) var(--fondo-oscuro);
     scrollbar-width: thin;
-  }
 
-  #content {
-    padding: 0 2rem 0 2rem;
-    height: 84dvh;
-  }
+    #content {
+      padding: 0 2rem 0 2rem;
+      height: 84dvh;
+    }
 
-  footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2rem;
-    background: var(--fondo-oscuro);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--texto-gris);
-  }
+    /* Transitions */
+    .page-opacity-enter-active,
+    .page-opacity-leave-active {
+      transition: 200ms ease all;
+    }
 
-  /* Transitions */
-  .page-opacity-enter-active,
-  .page-opacity-leave-active {
-    transition: 300ms ease all;
-  }
+    .page-opacity-enter,
+    .page-opacity-leave-to {
+      opacity: 0;
+    }
 
-  .page-opacity-enter,
-  .page-opacity-leave-to {
-    opacity: 0;
+    footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2rem;
+      background: var(--fondo-oscuro);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--texto-gris);
+    }
   }
 </style>

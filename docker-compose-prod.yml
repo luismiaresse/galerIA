@@ -20,6 +20,12 @@ services:
       db:
         condition: service_healthy
     container_name: galeria-app
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:80"]
+      interval: 1m
+      timeout: 10s
+      retries: 5
+      start_period: 1m
 
   server:
     build: ./server
@@ -29,3 +35,7 @@ services:
       - "80:80"
       - "443:443"
     container_name: galeria-server
+
+networks:
+  default:
+    name: galeria-prod

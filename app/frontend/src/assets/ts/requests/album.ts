@@ -1,5 +1,4 @@
-import { mediaBase64 } from "@ts/common";
-import { ALBUM_API, MediaKinds, USER_ALBUMS_API } from "@ts/constants";
+import { ALBUM_API, USER_ALBUMS_API } from "@ts/constants";
 import { IAlbum, IUserAlbum } from "@ts/definitions";
 
 export const getAlbum = async (auth: string, albumopts?: IUserAlbum) => {
@@ -35,11 +34,6 @@ export const getAlbum = async (auth: string, albumopts?: IUserAlbum) => {
     }
 
     const albumsmeta: IUserAlbum[] = await response.json();
-
-    for (const a of albumsmeta) {
-      if (a.cover)
-        a.cover = (await mediaBase64(a.cover, MediaKinds.IMAGE)) as string;
-    }
     return albumsmeta;
   } catch (error) {
     console.error(error);

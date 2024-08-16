@@ -1,12 +1,33 @@
-<script setup>
-  import { RouterLink } from "vue-router";
+<script setup lang="ts">
+  import { RouterLink, useRouter } from "vue-router";
   import HeaderElement from "./HeaderElement.vue";
-  import { useUserStore } from "@js/stores/user";
+  import { inject, ref, Ref, watchEffect } from "vue";
+  import { getURLFromBlob } from "@ts/common";
+  import AccountPopover from "./AccountPopover.vue";
+  import { IUserData } from "@ts/definitions";
+  import { USER_PROFILE_ANONYMOUS } from "@ts/constants";
 
-  const userSt = useUserStore();
+  const router = useRouter();
+  const userData: Ref<IUserData | null> | undefined = inject("userData");
+  const userPhoto = ref(USER_PROFILE_ANONYMOUS);
+
+  // Looks for changes in userData and updates userPhoto
+  watchEffect(() => {
+    if (userData && userData.value && userData.value.photo) {
+      userPhoto.value = getURLFromBlob(userData.value.photo);
+    }
+  });
 
   const showPopover = () => {
     $("#account-popover")[0].showPopover();
+  };
+
+  const setAnonymousUser = () => {
+    userPhoto.value = USER_PROFILE_ANONYMOUS;
+    if (userData) {
+      userData.value = null;
+    }
+    router.push({ name: "Auth" });
   };
 </script>
 
@@ -45,22 +66,17 @@
         />
       </li>
     </ul>
-    <div v-if="userSt.user" id="account" @click="showPopover">
-      <p>{{ userSt.user.username }}</p>
-      <img
-        id="profile-photo"
-        v-if="userSt.user.photo"
-        :src="userSt.user.photo"
-        alt="account"
-      />
-      <img id="profile-photo" v-else src="@img/anonymous.webp" alt="account" />
+    <div v-if="userData" id="account" @click="showPopover">
+      <p>{{ userData.username }}</p>
+      <img id="profile-photo" :src="userPhoto" alt="photo" />
+      <AccountPopover :user="userData" @logout="setAnonymousUser" />
     </div>
     <RouterLink v-else id="account" :to="{ name: 'Auth' }">
       <p>{{ $t("header.account.login") }}</p>
       <img
         id="profile-photo"
-        src="@img/anonymous.webp"
-        alt="account"
+        :src="USER_PROFILE_ANONYMOUS"
+        alt="photo"
         class="rounded-none"
       />
     </RouterLink>
@@ -187,12 +203,11 @@
 
     & p {
       text-wrap: nowrap;
-    }
-
-    &:hover {
-      background: var(--gradiente);
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      &:hover {
+        background: var(--gradiente);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
     }
   }
 </style>

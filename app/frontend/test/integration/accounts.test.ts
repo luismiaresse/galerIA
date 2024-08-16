@@ -1,8 +1,4 @@
-import {
-  changePassword,
-  deleteAccount,
-  getAccountData
-} from "@ts/requests/user";
+import { changePassword, deleteAccount, getUserData } from "@ts/requests/user";
 import {
   afterAll,
   afterEach,
@@ -37,11 +33,11 @@ describe("Accounts subsystem", () => {
 
   describe("INT-04-01: Account data", () => {
     it("getAccountData01", async () => {
-      expect(getAccountData).toBeDefined();
+      expect(getUserData).toBeDefined();
       // Force the token to be removed from the local storage
       // It should be retrieved from the server
       localStorage.clear();
-      const accountData = await getAccountData(TESTUSER_TOKEN_REF.value);
+      const accountData = await getUserData(TESTUSER_TOKEN_REF.value);
       testUserData(accountData);
 
       // Check if the data is stored in the local storage
@@ -53,13 +49,13 @@ describe("Accounts subsystem", () => {
 
     it("getAccountData02", async () => {
       localStorage.clear();
-      const accountData = await getAccountData(INCORRECT_TOKEN);
+      const accountData = await getUserData(INCORRECT_TOKEN);
       expect(accountData).toBeNull();
     });
 
     it("getAccountData03", async () => {
       localStorage.clear();
-      const accountData = await getAccountData(undefined as any);
+      const accountData = await getUserData(undefined as any);
       expect(accountData).toBeNull();
     });
   });
@@ -148,7 +144,7 @@ describe("Accounts subsystem", () => {
     afterAll(async () => {
       // Delete the account from the database
       // Get data to check if the account is deleted
-      const accountData = await getAccountData(token);
+      const accountData = await getUserData(token);
       if (accountData) {
         const isDeleted = await deleteAccount(token);
         expect(isDeleted).toBe(true);
@@ -216,7 +212,7 @@ describe("Accounts subsystem", () => {
     afterEach(async () => {
       // Delete the account from the database
       // Get data to check if the account is deleted
-      const accountData = await getAccountData(userdeletion_token);
+      const accountData = await getUserData(userdeletion_token);
       if (accountData) {
         const isDeleted = await deleteAccount(userdeletion_token);
         expect(isDeleted).toBe(true);

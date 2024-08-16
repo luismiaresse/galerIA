@@ -34,3 +34,6 @@ ssl
 *.sqlite
 *.pg*
 .env
+
+# User files
+usermedia

@@ -13,3 +13,7 @@ services:
       timeout: 10s
       retries: 5
     container_name: galeria-db-dev
+
+networks:
+  default:
+    name: galeria-dev

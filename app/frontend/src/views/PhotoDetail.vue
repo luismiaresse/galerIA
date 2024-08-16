@@ -4,7 +4,7 @@
   import { Ref, inject, ref } from "vue";
   import { useRoute, useRouter } from "vue-router";
   import { useMediaidsStore } from "@js/stores/mediaids";
-  import { intlStringDate, mediaBase64 } from "@ts/common";
+  import { intlStringDate } from "@ts/common";
   import { IAlbum, IMedia, IMediaProperties } from "@ts/definitions";
   import {
     deleteMediaIndexedDB,
@@ -21,12 +21,10 @@
   const route = useRoute();
   const router = useRouter();
   const auth = getAuth();
-  if (!auth) {
-    router.push({ name: "Auth" });
-    throw new Error("No login token");
-  }
   const canvas: Ref<HTMLCanvasElement> = ref() as Ref<HTMLCanvasElement>;
-  const isChanged = ref(false);
+  const video: Ref<HTMLVideoElement> = ref() as Ref<HTMLVideoElement>;
+  const isMediaChanged = ref(false);
+  const currentBlob: Ref<Blob | undefined | null> = ref();
 
   const db: Ref<IDBDatabase> | undefined = inject("db");
   const mediaidsSt = useMediaidsStore();
@@ -37,9 +35,9 @@
     let album: IAlbum = { id: albumid };
     let albumMeta;
     if (!albumid) {
-      albumMeta = await getAlbum(auth);
+      albumMeta = await getAlbum(auth!);
     } else {
-      albumMeta = await getAlbum(auth, album);
+      albumMeta = await getAlbum(auth!, album);
     }
     if (!albumMeta) {
       throw new Error("No album metadata");
@@ -48,7 +46,7 @@
     album = albumMeta[0];
 
     // Get mediaids of the album
-    const medias = await getMedia(auth, undefined, album.id, true);
+    const medias = await getMedia(auth!, undefined, album, true);
     mediaids = [];
     if (medias) {
       for (const m of medias) {
@@ -65,7 +63,7 @@
   const previousRotation = ref(0);
   const previousMedia = ref();
 
-  // Bind keyboard arrows to navigate through photos
+  // Bind keyboard arrows to navigate through medias
   window.onkeydown = (e) => {
     if (e.key === "ArrowLeft" && previousmediaid) {
       mediaNavigationFunc(albumid, previousmediaid);
@@ -73,6 +71,13 @@
       mediaNavigationFunc(albumid, nextmediaid);
     } else if (e.key === "Escape") {
       router.replace("./");
+    }
+  };
+
+  // Prevent reload on media change
+  window.onbeforeunload = (e) => {
+    if (isMediaChanged.value) {
+      e.preventDefault();
     }
   };
 
@@ -104,47 +109,49 @@
 
   const useAsCoverFunc = async () => {
     // Use the media as the album cover
-    setAlbumCover(auth, albumid, currentmediaid);
+    setAlbumCover(auth!, albumid, currentmediaid);
   };
 
   const upscaleFunc = () => {
     // Upscale the photo
-    if (!media || !media.value || !media.value.file) {
+    if (!currentBlob.value) {
       return;
     }
     // Create image element
     const img = new Image();
-    img.src = media.value.file.toString();
+    img.src = URL.createObjectURL(currentBlob.value);
+    console.log(img);
     img.onload = () => {
       upscaleImage(img, canvas.value).then(() => {
         // Enable save button
-        isChanged.value = true;
-        // draw the image in the canvas
-        media.value!.file = canvas.value.toDataURL();
+        isMediaChanged.value = true;
         media.value!.width = canvas.value.width;
         media.value!.height = canvas.value.height;
-
-        refreshCanvasMedia();
+        canvas.value.toBlob((blob) => {
+          if (blob) {
+            currentBlob.value = blob;
+          }
+        });
       });
     };
   };
 
   const downloadFunc = () => {
-    // Download the photo
-    if (!media.value || !media.value.file || !media.value.filename) {
+    // Download the media
+    if (!currentBlob.value || !media.value || !media.value.filename) {
       return;
     }
     $("#download-option")
-      .attr("href", media.value.file.toString())
+      .attr("href", URL.createObjectURL(currentBlob.value))
       .attr("download", media.value.filename);
   };
 
   const deleteMediaFunc = async () => {
-    // Delete the photo
-    await deleteMedia(auth, currentmediaid, albumid);
+    // Delete the media
+    await deleteMedia(auth!, { id: currentmediaid }, { id: albumid });
     // Delete the media from the indexedDB
     if (db && db.value) {
-      await deleteMediaIndexedDB(db.value, currentmediaid);
+      await deleteMediaIndexedDB(db.value, { id: currentmediaid });
     }
     if (!albumid) {
       router.push({ name: "Photos" });
@@ -162,8 +169,9 @@
 
   const cropFunc = () => {
     // Hide UI elements
-    $("#photo-options").addClass("hidden");
-    $("#photo-navigation").addClass("hidden");
+    $("#media-options").addClass("hidden");
+    $("#media-navigation").addClass("hidden");
+    $("#media-dialogs").addClass("hidden");
     $("#crop-dialog").removeClass("hidden");
 
     const options = {
@@ -195,19 +203,24 @@
       return;
     }
 
-    const base64 = cv.toDataURL();
+    const blob = await new Promise<Blob>((resolve) => {
+      cv.toBlob((blob) => {
+        resolve(blob as Blob);
+      }, "image/*");
+    });
 
     // Update media properties (needed to keep aspect ratio)
-    media.value.file = base64;
+    media.value.file = currentBlob.value = blob;
     media.value.width = cv.width;
     media.value.height = cv.height;
     media.value.mp = Number(((cv.width * cv.height) / 1e6).toPrecision(3));
 
     $("#crop-dialog").addClass("hidden");
-    $("#photo-options").removeClass("hidden");
-    $("#photo-navigation").removeClass("hidden");
+    $("#media-options").removeClass("hidden");
+    $("#media-navigation").removeClass("hidden");
+    $("#media-dialogs").removeClass("hidden");
 
-    isChanged.value = true;
+    isMediaChanged.value = true;
     currentRotation.value = 0;
     refreshCanvasMedia();
   };
@@ -216,15 +229,17 @@
     const cropper = window.cropper as Cropper;
     cropper.destroy();
     $("#crop-dialog").addClass("hidden");
-    $("#photo-options").removeClass("hidden");
-    $("#photo-navigation").removeClass("hidden");
+    $("#media-options").removeClass("hidden");
+    $("#media-navigation").removeClass("hidden");
+    $("#media-dialogs").removeClass("hidden");
   };
 
   const toggleOverlays = () => {
-    // Toggle the overlays visibility when clicking on the photo
+    // Toggle the overlays visibility when clicking on the media
     if (!selected.value) {
-      $("#photo-options").toggleClass("hidden-transition");
-      $("#photo-navigation").toggleClass("hidden-transition");
+      $("#media-options").toggleClass("hidden-transition");
+      $("#media-navigation").toggleClass("hidden-transition");
+      $("#media-dialogs").toggleClass("hidden-transition");
     }
   };
 
@@ -233,6 +248,7 @@
       !media ||
       !media.value ||
       !media.value.file ||
+      !currentBlob.value ||
       !canvas ||
       !canvas.value
     ) {
@@ -261,9 +277,8 @@
     ctx.rotate((currentRotation.value * Math.PI) / 180);
     ctx.translate(-obj.x, -obj.y);
     // Draw the picture into the canvas
-    // Transform base64 to image
     const img = new Image();
-    img.src = media.value.file.toString();
+    img.src = URL.createObjectURL(currentBlob.value);
     img.onload = () => {
       // Get image properties
       if (media.value) {
@@ -297,16 +312,18 @@
 
   const rotateFunc = () => {
     // Enable save button
-    isChanged.value = true;
+    isMediaChanged.value = true;
     refreshCanvasMedia();
   };
 
   const cancelFunc = () => {
     // Reset state
     currentRotation.value = previousRotation.value;
-    if (media.value && previousMedia.value)
+    if (media.value && previousMedia.value) {
       media.value = Object.assign({}, previousMedia.value);
-    isChanged.value = false;
+      currentBlob.value = previousMedia.value.file;
+    }
+    isMediaChanged.value = false;
     refreshCanvasMedia();
   };
 
@@ -336,15 +353,15 @@
     media.value.kind = MediaKinds.IMAGE;
     media.value.file = blob;
 
-    await putMedia(auth, media.value, albumid);
+    await putMedia(auth!, media.value, { id: albumid });
     // Remove the media in the indexedDB to update it automatically
     if (db && db.value) {
-      await deleteMediaIndexedDB(db.value, currentmediaid);
+      await deleteMediaIndexedDB(db.value, { id: currentmediaid });
     }
 
     // Reset state
-    media.value.file = canvas.value.toDataURL();
-    isChanged.value = false;
+    // media.value.file = canvas.value.toDataURL();
+    isMediaChanged.value = false;
     previousRotation.value = currentRotation.value;
     currentRotation.value = 0;
     previousMedia.value = Object.assign({}, media.value);
@@ -399,19 +416,16 @@
     }
   };
 
-  const getMediaInfo = async (media: IMediaProperties) => {
-    media.file = (await mediaBase64(media.file!, media.kind)) as string;
-
-    if (!media.file) {
-      return;
-    }
-
-    // Calculate image resolution
-    const img = new Image();
-    img.src = media.file.toString();
-
+  const getMediaInfo = (media: IMediaProperties) => {
     // Wait for the image to load
-    return new Promise<IMediaProperties>((resolve) => {
+    return new Promise<IMediaProperties>((resolve, reject) => {
+      if (!media.file) {
+        return reject(null);
+      }
+
+      // Calculate image resolution
+      const img = new Image();
+      img.src = URL.createObjectURL(media.file);
       img.onload = () => {
         media.width = img.width;
         media.height = img.height;
@@ -422,7 +436,7 @@
   };
 
   const getMediaFileFromServer = async () => {
-    const data = await getMedia(auth, currentmediaid, albumid);
+    const data = await getMedia(auth!, { id: currentmediaid }, { id: albumid });
     if (data) {
       return data[0];
     }
@@ -436,7 +450,7 @@
       m = await getMediaFileFromServer();
     } else {
       try {
-        m = await getMediaPropertiesIndexedDB(db.value, currentmediaid);
+        m = await getMediaPropertiesIndexedDB(db.value, { id: currentmediaid });
         if (!m) {
           m = await getMediaFileFromServer();
         }
@@ -450,42 +464,38 @@
     }
 
     media.value = m as IMediaProperties;
+    videoURL.value = URL.createObjectURL(media.value.file!);
 
-    return new Promise<void>((resolve) => {
-      getMediaInfo(m as IMediaProperties).then((data) => {
-        if (!data) {
-          throw new Error("No media data");
-        }
-        media.value = data;
-        previousMedia.value = Object.assign({}, media.value);
-
-        refreshCanvasMedia();
-        resolve();
-      });
-    });
+    media.value = await getMediaInfo(m as IMediaProperties);
+    if (!media) {
+      throw new Error("No media data");
+    }
+    currentBlob.value = media.value.file;
+    previousMedia.value = Object.assign({}, media.value);
+    refreshCanvasMedia();
   };
 
-  getMediaFileFunc().then(() => {
-    const cv = document.getElementById("photo") as HTMLCanvasElement;
-    canvas.value = cv;
-    refreshCanvasMedia();
-  });
   const selected = ref("");
+  const videoURL = ref();
+
+  getMediaFileFunc();
 </script>
 
 <template>
-  <div v-if="media && media.file" id="photo-detail">
+  <div v-if="media && media.file" id="media-detail">
     <canvas
       v-if="media.kind === MediaKinds.IMAGE"
-      id="photo"
-      ref="photo"
+      id="imageContainer"
+      ref="canvas"
+      class="fullscreen"
       @click="toggleOverlays"
     />
     <video
       v-else-if="media.kind === MediaKinds.VIDEO"
-      id="photo"
-      ref="photo"
-      :src="media.file as string"
+      id="videoContainer"
+      ref="video"
+      :src="videoURL"
+      class="fullscreen"
       controls
       autoplay
     ></video>
@@ -500,38 +510,38 @@
       >
     </div>
 
-    <div id="photo-navigation">
+    <div id="media-navigation">
       <!-- Go to previous page -->
       <a
-        id="photo-navigation-back"
-        class="photo-navigation-option dialog-translucent"
+        id="media-navigation-back"
+        class="media-navigation-option dialog-translucent"
         @click="router.replace('./')"
       >
         <md-icon>arrow_back</md-icon>
       </a>
-      <!-- Previous photo -->
+      <!-- Previous media -->
       <a
         v-if="previousmediaid"
         @click="mediaNavigationFunc(albumid, previousmediaid)"
-        id="photo-navigation-previous"
-        class="photo-navigation-option dialog-translucent"
+        id="media-navigation-previous"
+        class="media-navigation-option dialog-translucent"
       >
         <!-- This icon needs offset as it is not centered -->
         <md-icon class="pl-2">arrow_back_ios</md-icon>
       </a>
-      <!-- Next photo -->
+      <!-- Next media -->
       <a
         v-if="nextmediaid"
         @click="mediaNavigationFunc(albumid, nextmediaid)"
-        id="photo-navigation-next"
-        class="photo-navigation-option dialog-translucent"
+        id="media-navigation-next"
+        class="media-navigation-option dialog-translucent"
       >
         <md-icon>arrow_forward_ios</md-icon>
       </a>
     </div>
-    <div id="photo-options" class="dialog-translucent flex flex-row gap-4">
+    <div id="media-options" class="dialog-translucent flex flex-row gap-4">
       <!-- Download option -->
-      <a id="download-option" class="photo-option" @click="downloadFunc">
+      <a id="download-option" class="media-option" @click="downloadFunc">
         <md-icon
           :class="{
             'material-symbols-outlined': selected !== 'download',
@@ -544,7 +554,7 @@
       <!-- Edit option -->
       <div
         id="edit-option"
-        class="photo-option"
+        class="media-option"
         @click="toggleSelected('edit')"
       >
         <md-icon
@@ -556,10 +566,45 @@
         </md-icon>
         <p class="font-primary font-bold">{{ $t("edit") }}</p>
       </div>
+
+      <!-- Delete option -->
+      <div
+        id="delete-option"
+        class="media-option"
+        @click="toggleSelected('delete')"
+      >
+        <md-icon
+          :class="{
+            'material-symbols-outlined': selected !== 'delete',
+            'material-symbols-rounded': selected === 'delete'
+          }"
+          >delete
+        </md-icon>
+        <p class="font-primary font-bold">{{ $t("delete") }}</p>
+      </div>
+
+      <!-- Details option -->
+      <div
+        id="details-option"
+        class="media-option"
+        @click="toggleSelected('details')"
+      >
+        <md-icon
+          :class="{
+            'material-symbols-outlined': selected !== 'details',
+            'material-symbols-rounded': selected === 'details'
+          }"
+          >info
+        </md-icon>
+        <p class="font-primary font-bold">{{ $t("details") }}</p>
+      </div>
+    </div>
+
+    <div id="media-dialogs">
       <!-- Edit dialog -->
       <div
         id="edit-dialog"
-        class="photo-option-dialog dialog-translucent hidden flex flex-col gap-6"
+        class="media-option-dialog dialog-translucent hidden flex flex-col gap-6"
       >
         <div class="flex flex-col gap-6">
           <!-- Albums options -->
@@ -576,14 +621,20 @@
                 {{ $t("photos.detail.addToAlbum") }}
               </md-text-button>
               <!-- Use as cover option -->
-              <md-text-button v-if="albumid" @click="useAsCoverFunc">
+              <md-text-button
+                v-if="albumid && media.kind === MediaKinds.IMAGE"
+                @click="useAsCoverFunc"
+              >
                 <md-icon slot="icon">award_star</md-icon>
                 {{ $t("photos.detail.useAsCover") }}
               </md-text-button>
             </div>
           </div>
           <!-- Scale options -->
-          <div class="flex flex-col gap-3">
+          <div
+            v-if="media.kind === MediaKinds.IMAGE"
+            class="flex flex-col gap-3"
+          >
             <div class="flex flex-row gap-3 items-center">
               <md-icon class="material-symbols-outlined">fit_screen</md-icon>
               <h4>{{ $t("photos.detail.scale") }}</h4>
@@ -604,7 +655,10 @@
             </div>
           </div>
           <!-- Orientation options -->
-          <div class="flex flex-col gap-3">
+          <div
+            v-if="media.kind === MediaKinds.IMAGE"
+            class="flex flex-col gap-3"
+          >
             <div class="flex flex-row gap-3 items-center">
               <md-icon class="material-symbols-outlined">sync</md-icon>
               <h4>{{ $t("photos.detail.orientation") }}</h4>
@@ -622,36 +676,22 @@
           </div>
         </div>
         <div class="flex flex-row justify-evenly">
-          <md-text-button :disabled="!isChanged" @click="cancelFunc">{{
+          <md-text-button :disabled="!isMediaChanged" @click="cancelFunc">{{
             $t("cancel")
           }}</md-text-button>
-          <md-filled-button :disabled="!isChanged" @click="updateMediaFunc">
+          <md-filled-button
+            :disabled="!isMediaChanged"
+            @click="updateMediaFunc"
+          >
             <md-icon slot="icon">save</md-icon>
             {{ $t("save") }}
           </md-filled-button>
         </div>
       </div>
-
-      <!-- Delete option -->
-      <div
-        id="delete-option"
-        class="photo-option"
-        @click="toggleSelected('delete')"
-      >
-        <md-icon
-          :class="{
-            'material-symbols-outlined': selected !== 'delete',
-            'material-symbols-rounded': selected === 'delete'
-          }"
-          >delete
-        </md-icon>
-        <p class="font-primary font-bold">{{ $t("delete") }}</p>
-      </div>
-
       <!-- Delete confirmation dialog -->
       <div
         id="delete-confirmation-dialog"
-        class="photo-option-dialog dialog-translucent hidden flex flex-col gap-6 text-center"
+        class="media-option-dialog dialog-translucent hidden flex flex-col gap-6 text-center"
       >
         <p>{{ $t("photos.detail.deleteConfirmation") }}</p>
         <div class="flex flex-row justify-evenly">
@@ -665,26 +705,10 @@
           >
         </div>
       </div>
-
-      <!-- Details option -->
-      <div
-        id="details-option"
-        class="photo-option"
-        @click="toggleSelected('details')"
-      >
-        <md-icon
-          :class="{
-            'material-symbols-outlined': selected !== 'details',
-            'material-symbols-rounded': selected === 'details'
-          }"
-          >info
-        </md-icon>
-        <p class="font-primary font-bold">{{ $t("details") }}</p>
-      </div>
       <!-- Details dialog -->
       <div
         id="details-dialog"
-        class="photo-option-dialog dialog-translucent hidden flex flex-col gap-6"
+        class="media-option-dialog dialog-translucent hidden flex flex-col gap-6"
       >
         <div class="flex flex-row gap-3 items-center">
           <md-icon class="material-symbols-outlined">image</md-icon>
@@ -750,9 +774,9 @@
   }
 
   @media (--mobile) {
-    #photo-detail {
-      // Photo options bottom row
-      #photo-options {
+    #media-detail {
+      // Media options bottom row
+      #media-options {
         bottom: 0;
         top: initial !important;
         left: 0;
@@ -762,25 +786,25 @@
         padding: 0.5rem;
         border-radius: 30px 30px 0 0 !important;
         border-bottom: none;
+      }
 
-        .photo-option p {
-          display: none;
-        }
+      .media-option p {
+        display: none;
+      }
 
-        .photo-option-dialog {
-          position: fixed !important;
-          width: 90dvw !important;
-          top: auto !important;
-          bottom: 100px !important;
-          margin: 0 auto;
-          right: 0 !important;
-          left: 0 !important;
-        }
+      .media-option-dialog {
+        position: fixed !important;
+        width: 90dvw !important;
+        top: auto !important;
+        bottom: 100px !important;
+        margin: 0 auto;
+        right: 0 !important;
+        left: 0 !important;
       }
     }
   }
 
-  #photo-detail {
+  #media-detail {
     /* Backdrop all viewport */
     position: absolute;
     width: 100dvw;
@@ -790,11 +814,12 @@
     background: var(--fondo-oscuro);
     z-index: 200;
 
-    #photo {
+    .fullscreen {
       width: 100dvw;
       height: 100dvh;
       max-width: 100dvw;
       max-height: 100dvh;
+      // Keep aspect ratio
       object-fit: contain;
     }
 
@@ -808,7 +833,7 @@
       border-radius: 30px 30px 0 0;
     }
 
-    #photo-options {
+    #media-options {
       transition: opacity 0.25s ease-in-out;
       padding: 10px;
       border-radius: 0 0 0 30px;
@@ -818,7 +843,7 @@
       top: -1px;
       right: -1px;
 
-      .photo-option {
+      .media-option {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -828,25 +853,25 @@
         cursor: pointer;
       }
 
-      .photo-option:hover {
+      .media-option:hover {
         color: var(--md-sys-color-primary);
-      }
-
-      .photo-option-dialog {
-        position: absolute;
-        min-width: 275px;
-        width: 30vw;
-        max-width: 400px;
-        height: fit-content;
-        top: 80px;
-        right: 10px;
-        padding: 1rem;
-        cursor: initial;
-        z-index: 201;
       }
     }
 
-    .photo-navigation-option {
+    .media-option-dialog {
+      position: absolute;
+      min-width: 275px;
+      width: 30vw;
+      max-width: 400px;
+      height: fit-content;
+      top: 75px;
+      right: 10px;
+      padding: 1rem;
+      cursor: initial;
+      z-index: 201;
+    }
+
+    .media-navigation-option {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -858,24 +883,24 @@
       border: 1px solid var(--texto-gris);
     }
 
-    #photo-navigation {
+    #media-navigation {
       transition: opacity 0.25s ease-in-out;
 
-      #photo-navigation-back {
+      #media-navigation-back {
         position: absolute;
         top: 5%;
         left: 5%;
         z-index: 30;
       }
 
-      #photo-navigation-next {
+      #media-navigation-next {
         position: absolute;
         top: 50%;
         right: 5%;
         z-index: 30;
       }
 
-      #photo-navigation-previous {
+      #media-navigation-previous {
         position: absolute;
         top: 50%;
         left: 5%;

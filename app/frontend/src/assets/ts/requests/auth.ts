@@ -1,5 +1,11 @@
 import { setAuth } from "@ts/auth";
-import { LOGIN_API, LOGOUT_API, REGISTER_API, USER_API } from "@ts/constants";
+import {
+  AUTH_TOKEN_PREFIX,
+  LOGIN_API,
+  LOGOUT_API,
+  REGISTER_API,
+  USER_API
+} from "@ts/constants";
 import { IUser } from "@ts/definitions";
 
 export const login = async (user: IUser) => {
@@ -12,13 +18,16 @@ export const login = async (user: IUser) => {
       body: JSON.stringify(user)
     });
 
-    const auth: { token: string; expiry: string } = await response.json();
-    if (response.status === 200) {
-      console.log("Login successful");
-      setAuth(auth);
-      return auth;
+    if (response.status !== 200) {
+      console.error("Login failed");
+      return null;
     }
-    return null;
+    const auth: { token: string; expiry: string } = await response.json();
+    console.log("Login successful");
+    // Set token prefix
+    auth.token = AUTH_TOKEN_PREFIX + auth.token;
+    setAuth(auth);
+    return auth;
   } catch (error) {
     console.error(error);
     return null;
@@ -77,7 +86,7 @@ export const logout = async (auth: string) => {
 export const checkAuthTokenHealth = async (auth: string | undefined | null) => {
   if (!auth) {
     console.error("No login token");
-    return;
+    return false;
   }
 
   const response = await fetch(USER_API + "?check=true", {

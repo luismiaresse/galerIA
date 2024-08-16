@@ -21,6 +21,9 @@ export const LOCALSTORAGE_SDTURBO = "sdturbo";
 export const AUTH_TOKEN_PREFIX = "Knox ";
 export const ALBUM_NAME_MAX_LENGTH = 35;
 
+const baseURL = import.meta.env.BASE_URL;
+export const USER_PROFILE_ANONYMOUS = baseURL + "anonymous.webp";
+
 // API paths
 // If process.env.NODE_ENV is development or test, use the development server
 const requestsURL =
@@ -37,3 +40,4 @@ export const MEDIA_API = requestsURL + "/api/media";
 export const ALBUM_API = requestsURL + "/api/album";
 export const USER_ALBUMS_API = requestsURL + "/api/albums";
 export const USER_MEDIA_API = requestsURL + "/api/medias";
+export const FILE_API = requestsURL + "/api/file";

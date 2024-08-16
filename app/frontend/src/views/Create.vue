@@ -122,9 +122,10 @@
       if (ramAmount && vramAmount) {
         disableIncompatibleSettings(ramAmount, vramAmount);
       }
+    } else {
+      // Prevent scrolling
+      $("#app").css("overflow-y", "hidden");
     }
-    // Prevent scrolling
-    $("#app").css("overflow-y", "hidden");
   };
 
   // Restore scrolling
@@ -250,8 +251,15 @@
           // Save generated images into media
           for (let i = 0; i < state.value.imageCount; i++) {
             const canvas = document.getElementById(`create-canvas-${i}`);
-            const img = canvas.toDataURL("image/*");
-            generatedMedia.value.push(img);
+            const imgBlob = await new Promise((resolve) => {
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  return null;
+                }
+                resolve(blob);
+              });
+            });
+            generatedMedia.value.push(imgBlob);
           }
           state.value.generating = false;
           state.value.generated = true;

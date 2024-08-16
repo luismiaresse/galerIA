@@ -45,9 +45,10 @@
     $("#status").text("Upscaling...");
     const image = $(".test")[0];
     const canvas = $(".test-canvas")[0];
-    upscaleImage(image, canvas);
-    // canvas.style.width = image.width + "px";
-    // canvas.style.height = image.height + "px";
+    await upscaleImage(image, canvas);
+    canvas.style.width = image.width + "px";
+    canvas.style.height = image.height + "px";
+    $("#status").text("Upscaled!");
   }
 </script>
 
@@ -67,7 +68,7 @@
     </md-outlined-button>
     <md-filled-button @click="upscale()">Upscale</md-filled-button>
     <div class="test-container flex flex-row mt-4">
-      <img class="test" src="@img/256.png" />
+      <!-- <img class="test" src="@img/256.png" /> -->
       <canvas class="test-canvas" width="0" height="0"></canvas>
     </div>
   </div>

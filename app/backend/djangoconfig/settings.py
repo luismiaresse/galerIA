@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',               # Django REST framework
     'knox',                         # Authentication
+    # 'encrypted_files',              # File upload encryption
     'django_vite',                  # Vite integration
     'core',                         # Main app
     'drf_spectacular',              # OpenAPI schema generator
@@ -185,6 +186,7 @@ CORS_ALLOWED_ORIGINS = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = DJANGO_DIR / 'staticfiles'
+MEDIA_ROOT = DJANGO_DIR / 'usermedia'
 
 DJANGO_VITE_DEV_MODE = DEBUG
 VITE_APP_DIR = BASE_DIR / "frontend"
@@ -226,3 +228,13 @@ REST_KNOX = {
   'AUTO_REFRESH': True,
   'AUTH_HEADER_PREFIX': 'Knox',
 }
+
+# File upload settings
+# AES_KEY = bytes(os.getenv('AES_KEY'), 'utf-8')
+
+FILE_UPLOAD_HANDLERS = [
+    # "encrypted_files.uploadhandler.EncryptedFileUploadHandler",
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler"
+]
+

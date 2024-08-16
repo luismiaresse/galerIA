@@ -1,49 +1,51 @@
-<script setup>
+<script setup lang="ts">
   import { RouterLink } from "vue-router";
   import { getAuth, resetAuth } from "@ts/auth";
-  import { useUserStore } from "@js/stores/user";
   import { logout } from "@ts/requests/auth";
-
-  const userSt = useUserStore();
+  import { ref } from "vue";
+  import { getURLFromBlob } from "@ts/common";
+  import { USER_PROFILE_ANONYMOUS } from "@ts/constants";
+  import { IUserData } from "@ts/definitions";
 
   const auth = getAuth();
+  const emit = defineEmits(["logout"]);
+  const props = defineProps({
+    user: Object as () => IUserData
+  });
+
+  const userData = ref(props.user);
+  const userPhoto = ref(
+    userData.value?.photo
+      ? getURLFromBlob(userData.value?.photo)
+      : USER_PROFILE_ANONYMOUS
+  );
 
   const logoutFunc = async () => {
-    if (await logout(auth)) {
+    if (await logout(auth!)) {
       resetAuth();
-      userSt.clearUser();
     }
-    hidePopover();
-  };
-
-  const hidePopover = () => {
-    $("#account-popover")[0].hidePopover();
+    emit("logout");
   };
 </script>
 
 <template>
   <div
-    v-if="userSt.user"
+    v-if="userData"
     id="account-popover"
     class="dialog p-0 absolute font-bold overflow-hidden"
     popover
   >
     <div id="account-info">
-      <img v-if="userSt.user.photo" :src="userSt.user.photo" alt="account" />
-      <img v-else src="@img/anonymous.webp" alt="account" />
+      <img :src="userPhoto" alt="photo" />
       <div id="account-info-text">
-        <p class="text-primary">{{ userSt.user.username }}</p>
-        <p class="text-secondary">{{ userSt.user.email }}</p>
+        <p class="text-primary">{{ userData.username }}</p>
+        <p class="text-secondary">{{ userData.email }}</p>
       </div>
     </div>
     <div id="account-options" class="mb-4">
       <ul>
         <li>
-          <RouterLink
-            class="button button-orange"
-            :to="{ name: 'Settings' }"
-            @click="hidePopover"
-          >
+          <RouterLink class="button button-orange" :to="{ name: 'Settings' }">
             <md-icon class="material-symbols-rounded">settings</md-icon>
             <p>{{ $t("header.account.settings") }}</p>
           </RouterLink>
@@ -94,18 +96,8 @@
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
   @import "@css/custom-media.css";
-
-  #account-popover {
-    top: 6rem;
-    width: 25rem;
-    margin-left: auto;
-    margin-right: 1rem;
-    z-index: 6;
-    max-width: 500px;
-    max-height: 500px;
-  }
 
   @media (--mobile) {
     #account-popover {
@@ -114,137 +106,148 @@
       top: auto;
       bottom: 1rem;
       width: 90vw;
+
+      &::backdrop {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+      }
+
+      .other-account a {
+        margin: 10px 0 3px 10px;
+      }
     }
-
-    #account-popover::backdrop {
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(3px);
-    }
-
-    .other-account a {
-      margin: 10px 0 3px 10px;
-    }
   }
 
-  #account-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 0.75rem;
-  }
-
-  #account-info img {
-    width: 100px;
-    height: 100px;
-    aspect-ratio: 1/1;
-    border-radius: 100%;
-    margin-bottom: 0.5rem;
-    /* Gradient circle */
-    background: var(--gradiente);
-    padding: 0.2em;
-  }
-
-  #account-options {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  #account-options ul {
-    display: flex;
-    flex-direction: row;
-    list-style: none;
-    padding: 0 1rem;
-  }
-
-  .button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 15px;
-    padding: 3px 10px;
-    margin: 0 0.5rem;
-    text-decoration: none;
-    color: var(--texto-blanco);
-  }
-
-  .button-orange {
-    border: 2px solid var(--naranja);
-  }
-
-  .button-red {
-    border: 2px solid var(--rojo);
-  }
-
-  .button-gradient {
-    border: none;
-    position: relative;
-    margin-left: 20px;
-    background: var(--fondo-oscuro);
-  }
-
-  /* Necesario para gradiente */
-  .button-gradient::before {
-    position: absolute;
-    border-radius: 100px;
-    content: "";
-    top: -0.2em;
-    bottom: -0.2em;
-    right: -0.2em;
-    left: -0.2em;
-    z-index: -1;
-    background: var(--gradiente);
-  }
-
-  #other-accounts-container {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0.6rem;
-  }
-
-  .other-account {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-around;
-    border-radius: 15px;
-    background: var(--fondo-claro);
-  }
-
-  .other-account img {
-    width: 48px;
-    height: 48px;
-    border-radius: 100%;
-    margin-right: 1rem;
-  }
-
-  .other-account-info {
-    display: flex;
-    flex-direction: row;
-  }
-
-  .other-account-info-text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #add-account {
-    color: var(--naranja);
-    margin-bottom: 1rem;
-  }
-
-  #signout-all {
-    background: rgba(255, 0, 0, 0.1);
+  #account-popover {
+    font-size: 16px;
+    top: 6rem;
+    width: 25rem;
     margin-left: auto;
-    margin-right: auto;
-    border-radius: 0 0 30px 30px;
-    padding: 1rem;
-  }
+    margin-right: 1rem;
+    z-index: 6;
+    max-width: 500px;
+    max-height: 500px;
 
-  #signout-all > * {
-    color: var(--rojo);
+    #account-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0.75rem;
+
+      & img {
+        width: 100px;
+        height: 100px;
+        aspect-ratio: 1/1;
+        border-radius: 100%;
+        margin-bottom: 0.5rem;
+        /* Gradient circle */
+        background: var(--gradiente);
+        padding: 0.2em;
+      }
+    }
+
+    #account-options {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      & ul {
+        display: flex;
+        flex-direction: row;
+        list-style: none;
+        padding: 0 1rem;
+      }
+    }
+
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 15px;
+      padding: 3px 10px;
+      margin: 0 0.5rem;
+      text-decoration: none;
+      color: var(--texto-blanco);
+    }
+
+    .button-orange {
+      border: 2px solid var(--naranja);
+    }
+
+    .button-red {
+      border: 2px solid var(--rojo);
+    }
+
+    .button-gradient {
+      border: none;
+      position: relative;
+      margin-left: 20px;
+      background: var(--fondo-oscuro);
+    }
+
+    /* Necesario para gradiente */
+    .button-gradient::before {
+      position: absolute;
+      border-radius: 100px;
+      content: "";
+      top: -0.2em;
+      bottom: -0.2em;
+      right: -0.2em;
+      left: -0.2em;
+      z-index: -1;
+      background: var(--gradiente);
+    }
+
+    #other-accounts-container {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0.6rem;
+    }
+
+    .other-account {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-around;
+      border-radius: 15px;
+      background: var(--fondo-claro);
+
+      & img {
+        width: 48px;
+        height: 48px;
+        border-radius: 100%;
+        margin-right: 1rem;
+      }
+
+      .other-account-info {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .other-account-info-text {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    #add-account {
+      color: var(--naranja);
+      margin-bottom: 1rem;
+    }
+
+    #signout-all {
+      background: rgba(255, 0, 0, 0.1);
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 0 0 30px 30px;
+      padding: 1rem;
+
+      & > * {
+        color: var(--rojo);
+      }
+    }
   }
 </style>
