@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
                           
 
 create or replace view public.user_data_view as
-select distinct on (u.id) u.id, u.username, u.email, m.id as photoid
+select distinct on (u.id) u.id, u.username, u.email, coalesce(m.id) as photoid
 from auth_user u
 left join album_user au on u.id = au.user_id
 left join album a on au.album_id = a.id and a.name = 'default'
 left join media_album ma on a.id = ma.album_id
 left join media m on ma.media_id = m.id and m.kind = 'profile'
-order by u.id desc;
+order by u.id desc, coalesce(m.id);
 
 
 create or replace view public.user_albums_view as
