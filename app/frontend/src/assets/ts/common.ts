@@ -82,7 +82,11 @@ export const detectionsArrayToString = (detections: IDetections[]) => {
   if (!detections) {
     return "";
   }
-  return detections.map((detection) => `${detection.label}`).join(";");
+  // Join unique labels with ";"
+  return detections
+    .map((detection) => detection.label)
+    .filter((label, index, self) => self.indexOf(label) === index)
+    .join(";");
 };
 
 export const checkUsernameUser = (user: IUser) => {
