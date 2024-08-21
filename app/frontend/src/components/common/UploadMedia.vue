@@ -69,7 +69,7 @@
       }
 
       // 3. Upload media with a request to the server
-      let media: IMedia;
+      let media;
       for (const file of filesArray) {
         // If user cancelled upload from the FileProgress component
         if (uploadCancelled.value) break;
@@ -99,8 +99,8 @@
           coordinates: coordinates
         };
 
-        media = (await putMedia(auth, mediaUp, {id: albumid})) as IMedia;
-        if (!media.id) {
+        media = await putMedia(auth, mediaUp, { id: albumid });
+        if (!media || !media.id) {
           console.error("Error uploading media");
           // TODO Show error
           return;
@@ -152,7 +152,7 @@
 
     try {
       // 2. Upload media with a request to the server
-      let media: IMedia;
+      let media;
       for (const file of Array.from(files)) {
         if (uploadCancelled.value) break;
 
@@ -162,8 +162,8 @@
           kind: MediaKinds.VIDEO
         };
 
-        media = (await putMedia(auth, mediaUp, {id: albumid})) as IMedia;
-        if (!media.id) {
+        media = await putMedia(auth, mediaUp, { id: albumid });
+        if (!media || !media.id) {
           console.error("Error uploading media");
           // TODO Show error
           return;
