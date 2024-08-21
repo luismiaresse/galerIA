@@ -787,16 +787,7 @@ class UserMediaAPI(KnoxAPIView):
                 usermedia = UserMedia.objects.get(id=user.id, media_id=mediaid)
                 return HttpResponse("[" + str(usermedia) + "]", content_type='application/json')
             
-            # Get media from album
-            media = []
-            images = usermedia.filter(kind=MediaKinds.IMAGE.value)
-            # for img in images:
-            #     img.file = img.file.decode('utf-8')
-            media.extend(images)
-            videos = usermedia.filter(kind=MediaKinds.VIDEO.value)
-            # for vid in videos:
-            #     vid.file = vid.file.decode('utf-8')
-            media.extend(videos)
+            media = list(usermedia)
             
             # Sort media by creation date (newest first)
             if media: 

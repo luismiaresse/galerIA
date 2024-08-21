@@ -74,7 +74,7 @@
       album.value,
       filter
     );
-    groupsByDate.value = groupMediaByDate(media.value as IMedia[]);
+    groupsByDate.value = groupMediaByDate(media.value!);
   };
 
   // Gets media modification date and sorts it by date (newest first)
@@ -146,64 +146,58 @@
     editAlbum.value = false;
   };
 
+  // Checks if the media in album is already in the IndexedDB
+  // If not, gets the media from the server
   const refreshMedia = async (db: IDBDatabase, album: IAlbum) => {
     if (!db || !album.id) {
       throw new Error("No indexedDB or album id");
     }
     media.value = [];
     const mediaids: Number[] = [];
-    const data = await getMedia(auth!, undefined, album, true);
 
-    if (data) {
-      // Check if the media in default album is already in the indexedDB
-      // If not, add it to the indexedDB
-      let indexedMedia = await getMediaIndexedDB(db, undefined, album);
-      if (!indexedMedia) indexedMedia = [];
+    // Data from server
+    let data = await getMedia(auth!, undefined, album, true);
+    if (!data) data = [];
 
-      // Check if the media in the server is already in the indexedDB
-      for (const mediaItem of data) {
-        // Store the media id
-        mediaids.push(mediaItem.id as number);
-        // Check if the media is not in the indexedDB
-        if (
-          mediaItem.kind !== MediaKinds.PROFILE &&
-          !indexedMedia.find((item: IMedia) => item.id === mediaItem.id)
-        ) {
-          // Get the media file
-          const mediaData = await getMedia(auth!, mediaItem, album);
+    // Data from IndexedDB
+    let indexedMedia = await getMediaIndexedDB(db, undefined, album);
+    if (!indexedMedia) indexedMedia = [];
+    console.log(data, indexedMedia);
 
-          if (mediaData) {
-            await putMediaIndexedDB(db, mediaData[0]);
-          }
+    // Check if the media in the server is already in the indexedDB
+    for (const mediaItem of data) {
+      // Store the media id
+      mediaids.push(Number(mediaItem.id));
+      // Check if the media is not in the indexedDB
+      if (!indexedMedia.find((item: IMedia) => item.id === mediaItem.id)) {
+        // Get the media file
+        const mediaData = await getMedia(auth!, mediaItem, album);
+
+        if (mediaData) {
+          await putMediaIndexedDB(db, mediaData[0]);
         }
       }
-
-      // Check if the media in the indexedDB is not in the server
-      for (const mediaItem of indexedMedia) {
-        if (
-          mediaItem.kind !== MediaKinds.PROFILE &&
-          !data.find(
-            (item) =>
-              item.id === mediaItem.id && mediaItem.kind !== MediaKinds.PROFILE
-          )
-        ) {
-          // Delete the media
-          await deleteMediaIndexedDB(db, mediaItem);
-        }
-      }
-
-      media.value = await getMediaIndexedDB(db, undefined, album);
-      // Exclude profile photo
-      media.value = media.value?.filter(
-        (mediaItem) => mediaItem.kind !== MediaKinds.PROFILE
-      );
-
-      // Store the media ids in pinia
-      mediaidsSt.setMediaids(mediaids);
-
-      // Group media by date
-      if (media.value) groupsByDate.value = groupMediaByDate(media.value);
     }
+
+    // Check if the media in the indexedDB is not in the server
+    for (const mediaItem of indexedMedia) {
+      if (!data.find((item) => item.id === mediaItem.id)) {
+        // Delete the media
+        await deleteMediaIndexedDB(db, mediaItem);
+      }
+    }
+
+    media.value = await getMediaIndexedDB(db, undefined, album);
+    // Exclude profile photo
+    media.value = media.value?.filter(
+      (mediaItem) => mediaItem.kind !== MediaKinds.PROFILE
+    );
+
+    // Store the media ids in pinia
+    mediaidsSt.setMediaids(mediaids);
+
+    // Group media by date
+    if (media.value) groupsByDate.value = groupMediaByDate(media.value);
   };
 
   const playVideo = async (event: any) => {

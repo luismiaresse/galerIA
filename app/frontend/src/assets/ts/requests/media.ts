@@ -56,7 +56,6 @@ export const getMedia = async (
     // Process the media
     for (const m of albumMedia) {
       // Exclude profile images
-      if (m.kind === MediaKinds.PROFILE) continue;
       if (!skipfiles) m.file = await getFile(auth, m);
     }
     return albumMedia;
