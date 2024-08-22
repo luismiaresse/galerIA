@@ -1,4 +1,5 @@
 import { LOCALSTORAGE_AUTH, LOCALSTORAGE_USERDATA } from "./constants";
+import { checkAuthTokenHealth } from "./requests/auth";
 
 export const getAuth = () => {
   const auth = localStorage.getItem(LOCALSTORAGE_AUTH);
@@ -29,11 +30,20 @@ export const resetAuth = () => {
 
 export const checkAuthRouter = (to: any, from: any, next: any) => {
   const auth = getAuth();
-  if (auth) {
-    if (to.path.startsWith("/auth")) next("/");
-    else next();
-  } else {
-    if (!to.path.startsWith("/auth")) next("/auth");
-    else next();
-  }
+  checkAuthTokenHealth(auth)
+    .then((check) => {
+      if (check) {
+        if (to.path.startsWith("/auth")) next("/");
+        else next();
+      } else {
+        resetAuth();
+        // If auth token is invalid, redirect to auth
+        // Needs to be done this way to avoid infinite loop
+        if (!to.path.startsWith("/auth")) next("/auth");
+        else next();
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 };

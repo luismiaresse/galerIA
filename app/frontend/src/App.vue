@@ -43,9 +43,7 @@
   waitForIndexedDB(db).then(() => {
     const auth = getAuth();
     checkAuthTokenHealth(auth).then((check) => {
-      if (!check) {
-        resetAuth();
-      } else {
+      if (check) {
         getUserData(auth, db.value).then((user) => {
           userData.value = user;
         });
