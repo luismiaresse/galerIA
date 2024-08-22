@@ -154,7 +154,7 @@ class RegisterAPI(generics.CreateAPIView):
     def create_user_folder(self, request):
         user = User.objects.get(username=request.data['username'])
         if not os.path.exists(f"{settings.MEDIA_ROOT}/{user.username}"):
-            os.mkdir(f"{settings.MEDIA_ROOT}/{user.username}")
+            os.makedirs(f"{settings.MEDIA_ROOT}/{user.username}")
         
     # Create album for new users
     def create_default_album(self, request):

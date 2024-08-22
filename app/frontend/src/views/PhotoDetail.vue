@@ -120,7 +120,6 @@
     // Create image element
     const img = new Image();
     img.src = URL.createObjectURL(currentBlob.value);
-    console.log(img);
     img.onload = () => {
       upscaleImage(img, canvas.value).then(() => {
         // Enable save button

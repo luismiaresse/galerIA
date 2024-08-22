@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { provide, ref, Suspense } from "vue";
   import Header from "@/components/header/Header.vue";
-  import { getAuth, resetAuth } from "@ts/auth";
+  import { getAuth } from "@ts/auth";
   import { checkAuthTokenHealth } from "@ts/requests/auth";
   import { RouterView } from "vue-router";
   import { useI18n } from "vue-i18n";

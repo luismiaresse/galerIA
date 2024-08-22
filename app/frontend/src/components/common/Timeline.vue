@@ -24,9 +24,8 @@
   const auth = getAuth();
   const props = defineProps<{ type: "default" | "album" }>();
   const type = props.type;
-  const media: Ref<IMedia[] | undefined | null> = ref([]);
   const album: Ref<IAlbum> = ref({});
-  const groupsByDate: Ref<{ [key: string]: IMedia[] }> = ref({});
+  const mediaGroups: Ref<{ [key: string]: IMedia[] }> = ref({});
   const language = navigator.language || "en-US";
 
   const editAlbum = ref(false);
@@ -68,17 +67,21 @@
     if (!db || !db.value || !album || !album.value) {
       throw new Error("No indexedDB");
     }
-    media.value = await getMediaIndexedDB(
+    let medias = await getMediaIndexedDB(
       db.value,
       undefined,
       album.value,
       filter
     );
-    groupsByDate.value = groupMediaByDate(media.value!);
+    mediaGroups.value = groupMediaByDate(medias!);
   };
 
   // Gets media modification date and sorts it by date (newest first)
   const groupMediaByDate = (mediaArray: IMedia[]) => {
+    // Exclude profile photo
+    mediaArray = mediaArray.filter(
+      (mediaItem) => mediaItem.kind !== MediaKinds.PROFILE
+    );
     const groups: { [key: number]: IMedia[] } = {};
 
     mediaArray.forEach((media) => {
@@ -152,7 +155,6 @@
     if (!db || !album.id) {
       throw new Error("No indexedDB or album id");
     }
-    media.value = [];
     const mediaids: Number[] = [];
 
     // Data from server
@@ -162,7 +164,6 @@
     // Data from IndexedDB
     let indexedMedia = await getMediaIndexedDB(db, undefined, album);
     if (!indexedMedia) indexedMedia = [];
-    console.log(data, indexedMedia);
 
     // Check if the media in the server is already in the indexedDB
     for (const mediaItem of data) {
@@ -187,17 +188,13 @@
       }
     }
 
-    media.value = await getMediaIndexedDB(db, undefined, album);
-    // Exclude profile photo
-    media.value = media.value?.filter(
-      (mediaItem) => mediaItem.kind !== MediaKinds.PROFILE
-    );
+    let medias = await getMediaIndexedDB(db, undefined, album);
 
     // Store the media ids in pinia
     mediaidsSt.setMediaids(mediaids);
 
     // Group media by date
-    if (media.value) groupsByDate.value = groupMediaByDate(media.value);
+    mediaGroups.value = groupMediaByDate(medias!);
   };
 
   const playVideo = async (event: any) => {
@@ -260,11 +257,7 @@
               {{ $t("albums.detail.lastUpdate") + album.lastupdate }}
             </p>
             <span class="separator-point"></span>
-            <div
-              v-if="!editAlbum"
-              class="flex flex-row gap-4 items-center"
-              @click="console.log(media)"
-            >
+            <div v-if="!editAlbum" class="flex flex-row gap-4 items-center">
               <md-text-button @click="editAlbum = true">
                 <md-icon slot="icon">edit</md-icon>
                 <span>{{ $t("edit") }}</span>
@@ -293,7 +286,7 @@
     <div id="photos-container" class="flex flex-col gap-8">
       <div
         class="medias flex flex-row"
-        v-for="(media, date) in groupsByDate"
+        v-for="(media, date) in mediaGroups"
         :key="date"
       >
         <div class="flex flex-col gap-4">
@@ -361,7 +354,12 @@
           </div>
         </div>
       </div>
-      <div id="timeline-empty" v-if="!media || media.length === 0">
+      <div
+        id="timeline-empty"
+        v-if="
+          !mediaGroups || !mediaGroups.items || mediaGroups.items.length === 0
+        "
+      >
         <h3>{{ $t("photos.empty") }}</h3>
       </div>
     </div>
