@@ -48,7 +48,7 @@ For local development, you will also need:
 - `devserver.sh` for development:
   - Install Python dependencies: `cd app/backend && pip install -r requirements.txt`
   - Install NPM dependencies: `cd app/frontend && npm install`
-  - Run the script: `chmod +x ./devserver.sh && ./devserver.sh`
+  - Run the script with `chmod +x ./devserver.sh && ./devserver.sh` and access the app at `http://localhost:8000`.
 - `prodserver.sh` for production: Just run `chmod +x ./prodserver.sh && ./prodserver.sh` and go to `https://www.galeria.software` (or your custom domain). Note that you will need to provide SSL certificates and a SSL key in the `server/ssl` folder.
 
 ## License
