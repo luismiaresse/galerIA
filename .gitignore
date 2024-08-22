@@ -37,3 +37,5 @@ ssl
 
 # User files
 usermedia
+usermedia-test
+db/backups

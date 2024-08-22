@@ -186,7 +186,7 @@ CORS_ALLOWED_ORIGINS = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = DJANGO_DIR / 'staticfiles'
-MEDIA_ROOT = DJANGO_DIR / 'usermedia'
+MEDIA_ROOT = DJANGO_DIR / 'usermedia' if not DEBUG else DJANGO_DIR / 'usermedia-test'
 
 DJANGO_VITE_DEV_MODE = DEBUG
 VITE_APP_DIR = BASE_DIR / "frontend"

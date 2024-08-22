@@ -5,7 +5,7 @@ if [ "$(basename $projectdir)" != "galerIA" ]; then
     exit 1
 fi
 
-usermediaFolder="$projectdir/app/backend/usermedia"
+usermediaFolder="$projectdir/app/backend/usermedia-test"
 
 function stop() {
     docker-compose -f "$projectdir/docker-compose-dev.yml" stop
@@ -27,14 +27,8 @@ arg=$1
 
 if [ "$arg" == "down" ]; then
     docker-compose -f "$projectdir/docker-compose-dev.yml" down
-    # Ask if usermedia folder should be removed
-    read -p "Remove usermedia folder ($usermediaFolder) content? (y/N) " -n 1 reply
-    reply=${reply:-N}
-    
-    if [[ $reply =~ ^[Yy]$ && -d "$usermediaFolder" ]]; then
-        printf "\nRemoving usermedia content...\n"
-        rm -rf "$usermediaFolder"/*
-    fi
+    printf "\nRemoving usermedia content...\n"
+    rm -rf "$usermediaFolder"/*
     stop
 fi
 
@@ -43,18 +37,16 @@ fi
 docker-compose -f docker-compose-dev.yml build
 docker-compose -f docker-compose-dev.yml up -d
 
-# Necessary to apply migrations
-cd db/
 
 
-# Check if container is healthy
+
+# Wait for DB to be healthy
 while [ "$(docker inspect --format '{{.State.Health.Status}}' galeria-db-dev)" != "healthy" ]; do
     sleep 0.5
 done
 
-# Check if port is open to receive connections
-./wait-for-it.sh localhost:5432
-cd ..
+# Check if port is open to receive connections and apply migrations
+./db/wait-for-it.sh localhost:5432
 
 # Vite server
 cd app/frontend

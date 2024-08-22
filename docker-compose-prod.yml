@@ -13,6 +13,9 @@ services:
       timeout: 10s
       retries: 5
     container_name: galeria-db
+    volumes:
+      # Backup database directory
+      - ./db/backups:/backups
 
   app:
     build: ./app
