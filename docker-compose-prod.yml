@@ -29,6 +29,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 1m
+    volumes:
+      - ./app/backend/usermedia:/app/backend/usermedia
 
   server:
     build: ./server
