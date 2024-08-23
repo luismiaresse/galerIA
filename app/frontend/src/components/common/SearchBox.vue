@@ -82,6 +82,7 @@
         class="overflow-ellipsis overflow-hidden whitespace-nowrap w-full"
         type="text"
         autocomplete="off"
+        rows="1"
         v-model="searchText"
         @blur="focused = false"
         @input="searchFunc"
@@ -116,8 +117,6 @@
       height: auto;
       max-height: 48px;
       resize: none;
-      // New property, not supported by all browsers yet
-      field-sizing: content;
 
       &:focus {
         outline: none;

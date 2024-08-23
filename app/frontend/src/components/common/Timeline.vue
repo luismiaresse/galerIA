@@ -354,12 +354,7 @@
           </div>
         </div>
       </div>
-      <div
-        id="timeline-empty"
-        v-if="
-          !mediaGroups || !mediaGroups.items || mediaGroups.items.length === 0
-        "
-      >
+      <div id="timeline-empty" v-if="Object.entries(mediaGroups).length === 0">
         <h3>{{ $t("photos.empty") }}</h3>
       </div>
     </div>
