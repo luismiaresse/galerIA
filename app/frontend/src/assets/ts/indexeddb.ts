@@ -32,7 +32,7 @@ export const getMediaIndexedDB = (
   db: IDBDatabase,
   media?: IMedia,
   album?: IAlbum,
-  // Filter can be a date (YYYY, YYYY-MM, YYYY-MM-DD), a
+  // Filter can be a date (YYYY, YYYY-MM, YYYY-MM-DD), a location
   // or an object from COCO dataset label
   filter?: string
 ): Promise<IMedia[]> | null => {
@@ -138,8 +138,8 @@ export const getMediaIndexedDB = (
         });
         resolve(mediaArray);
       };
-      request.onerror = function () {
-        reject("Error getting media from IndexedDB");
+      request.onerror = function (e: any) {
+        reject("Error getting media from IndexedDB: " + e.target.error);
       };
     } else if (media && media.id) {
       const request = objectStore.get(media.id);
@@ -170,6 +170,17 @@ export const putMediaIndexedDB = async (db: IDBDatabase, media: IMedia) => {
     return null;
   }
   await createThumbnail(media);
+
+  // Check if media already exists and delete it
+  try {
+    const m = await getMediaIndexedDB(db, media);
+    if (m) {
+      await deleteMediaIndexedDB(db, media);
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(["media"], "readwrite");
     const objectStore = transaction.objectStore("media");
