@@ -132,10 +132,3 @@ onmessage = async function (e) {
   console.log("Execution time: " + (end - create).toFixed(2) + "ms");
   postMessage({ detections: detections });
 };
-
-export default class InferenceWorker extends Worker {
-  constructor() {
-    console.log("Inference worker created");
-    super(new URL("./inferenceWorker.js", import.meta.url), { type: "module" });
-  }
-}

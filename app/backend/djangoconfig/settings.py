@@ -17,7 +17,7 @@ DOMAIN_NAME = 'www.galeria.software'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DJANGO_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,7 +29,7 @@ load_dotenv()
 SECRET_KEY = os.getenv('GALERIA_DJANGO_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [DOMAIN_NAME, 'localhost', '127.0.0.1']
 
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'djangoconfig.middleware.COEPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -101,7 +102,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': DJANGO_DIR / 'django.log',
+            'filename': BACKEND_DIR / 'django.log',
             'level': 'INFO',
         },
     },
@@ -168,7 +169,6 @@ USE_I18N = False
 USE_TZ = True
 
 CORS_ALLOW_ALL_ORIGINS = False
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173"
 ]
@@ -185,8 +185,8 @@ CORS_ALLOWED_ORIGINS = [
 # }
 
 STATIC_URL = '/static/'
-STATIC_ROOT = DJANGO_DIR / 'staticfiles'
-MEDIA_ROOT = DJANGO_DIR / 'usermedia' if not DEBUG else DJANGO_DIR / 'usermedia-test'
+STATIC_ROOT = BACKEND_DIR / 'staticfiles'
+MEDIA_ROOT = BACKEND_DIR / 'usermedia' if not DEBUG else BACKEND_DIR / 'usermedia-test'
 
 DJANGO_VITE_DEV_MODE = DEBUG
 VITE_APP_DIR = BASE_DIR / "frontend"

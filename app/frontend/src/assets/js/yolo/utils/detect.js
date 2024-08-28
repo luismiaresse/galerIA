@@ -1,6 +1,3 @@
-// TODO Does not work with Vite because of CORS and being a different URL
-import InferenceWorker from "./inferenceWorker?worker";
-
 /**
  * Run YOLO detection on images
  * @param {HTMLImageElement[]} images Images to detect
@@ -16,7 +13,10 @@ export const detectImages = async (images) => {
   }
   // Run session inside a web worker
   return new Promise((resolve, reject) => {
-    const yoloworker = new InferenceWorker();
+    const yoloworker = new Worker(
+      new URL("./inferenceWorker.js", import.meta.url),
+      { type: "module" }
+    );
     yoloworker.onmessage = function (e) {
       const { detections } = e.data;
       resolve(detections);

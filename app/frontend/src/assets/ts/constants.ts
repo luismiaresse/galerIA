@@ -25,19 +25,13 @@ const baseURL = import.meta.env.BASE_URL;
 export const USER_PROFILE_ANONYMOUS = baseURL + "anonymous.webp";
 
 // API paths
-// If process.env.NODE_ENV is development or test, use the development server
-const requestsURL =
-  process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test"
-    ? "http://localhost:8000"
-    : "";
+export const LOGIN_API = "/api/login";
+export const LOGOUT_API = "/api/logout";
+export const REGISTER_API = "/api/register";
 
-export const LOGIN_API = requestsURL + "/api/login";
-export const LOGOUT_API = requestsURL + "/api/logout";
-export const REGISTER_API = requestsURL + "/api/register";
-
-export const USER_API = requestsURL + "/api/user";
-export const MEDIA_API = requestsURL + "/api/media";
-export const ALBUM_API = requestsURL + "/api/album";
-export const USER_ALBUMS_API = requestsURL + "/api/albums";
-export const USER_MEDIA_API = requestsURL + "/api/medias";
-export const FILE_API = requestsURL + "/api/file";
+export const USER_API = "/api/user";
+export const MEDIA_API = "/api/media";
+export const ALBUM_API = "/api/album";
+export const USER_ALBUMS_API = "/api/albums";
+export const USER_MEDIA_API = "/api/medias";
+export const FILE_API = "/api/file";

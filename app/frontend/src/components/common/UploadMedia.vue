@@ -62,11 +62,8 @@
       }
 
       // Check if we are on development or production
-      // Because of CORS, we can't run YOLO on the browser when in development
       let detections: Array<Array<IDetections>> = [];
-      if (process.env.NODE_ENV !== "development") {
-        detections = await loadAndRunYOLO(images);
-      }
+      detections = await loadAndRunYOLO(images);
 
       // 3. Upload media with a request to the server
       let media;
@@ -75,12 +72,8 @@
         if (uploadCancelled.value) break;
 
         let detectionsString = "";
-        if (process.env.NODE_ENV !== "development") {
-          const detectionsIndex = filesArray.indexOf(file);
-          detectionsString = detectionsArrayToString(
-            detections[detectionsIndex]
-          );
-        }
+        const detectionsIndex = filesArray.indexOf(file);
+        detectionsString = detectionsArrayToString(detections[detectionsIndex]);
         // Get location
         const tags = await ExifReader.load(file);
         const lat = tags["GPSLatitude"];
